@@ -1,5 +1,7 @@
 FROM nginx:1.9.6
 
+USER nginx
+
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY sites-enabled /etc/nginx/sites-enabled
 COPY includes /etc/nginx/includes

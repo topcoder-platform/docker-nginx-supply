@@ -1,3 +1,9 @@
 #!/bin/bash
+echo "Stopping nginx server"
+sudo docker stop nginx
+echo "Removing nginx container"
+sudo docker rm nginx
+echo "Building new docker conatiner for nginx"
 sudo docker build -t nginx --file /root/Dockerfile
+echo "Starting new docker conatiner for nginx"
 sudo docker run -d --name nginx -p 8000:8000 nginx
