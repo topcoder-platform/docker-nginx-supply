@@ -1,0 +1,3 @@
+#!/bin/bash
+sudo docker build -t nginx --file /Dockerfile
+sudo docker run -d --name nginx -p 8000:8000 nginx
