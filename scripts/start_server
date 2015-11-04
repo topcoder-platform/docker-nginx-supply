@@ -1,4 +1,5 @@
 #!/bin/bash
+cd /tmp/nginx
 echo "Stopping nginx server"
 sudo docker stop nginx
 echo "Removing nginx container"
