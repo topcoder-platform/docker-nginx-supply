@@ -93,6 +93,61 @@
         "UserName" : {"Ref": "IAMUser"}
       }
     },
+     "EC2Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "ecs-service",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:Get*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "EC2InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "EC2Role"
+          }
+        ]
+      }
+    },
 
     "ServerGroup" : {
       "Type" : "AWS::AutoScaling::AutoScalingGroup",
@@ -127,6 +182,7 @@
         "KeyName" : { "Ref" : "KeyName" },
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI"] },
         "SecurityGroups" : [ { "Ref" : "ServerSecurityGroup" }, { "Ref": "AdminSecurityGroup" } ],
+        "IamInstanceProfile": { "Ref": "EC2InstanceProfile" },
         "AssociatePublicIpAddress": "false",
         "InstanceType" : { "Ref" : "InstanceType" },
         "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
