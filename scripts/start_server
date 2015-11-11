@@ -1,10 +1,10 @@
 #!/bin/bash
 cd /tmp/nginx
 echo "Stopping nginx server"
-sudo docker stop nginx
+docker stop nginx
 echo "Removing nginx container"
-sudo docker rm nginx
+docker rm nginx
 echo "Building new docker conatiner for nginx"
-sudo docker build -t nginx .
+docker build -t nginx .
 echo "Starting new docker conatiner for nginx"
-sudo docker run -d --name nginx -p 8000:8000 nginx
+docker run -d --name nginx -p 8000:8000 nginx
