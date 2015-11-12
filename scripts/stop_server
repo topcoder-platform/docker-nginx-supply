@@ -1,6 +1,6 @@
 #!/bin/bash
 id=`docker ps -q`
-if [[ $id ]]; 
+if [[ $id ]]; then
 	echo "Stopping nginx server" >> /var/log/setup/setup.log
 	docker stop $id
 fi
