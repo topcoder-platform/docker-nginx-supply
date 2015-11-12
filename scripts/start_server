@@ -2,6 +2,8 @@
 cd /mnt/nginx
 id=`docker ps -q`
 if [[ $id ]]; then
+	docker stop nginx
+	docker rm nginx
 	echo "Stopping nginx server" >> /var/log/setup/setup.log
 	docker stop $id
 	echo "Removing nginx container" >> /var/log/setup/setup.log
