@@ -213,6 +213,7 @@
           "aws s3 cp 's3://appirio-platform-",{ "Ref" : "EnvParam" },"/services/common/dockercfg' ~/.dockercfg || error_exit 'Failed to download docker credentials.'\n",
           "# Set up and start the nginx service\n",
           "mkdir -p /mnt/logs\n",
+          "mkdir -p /mnt/nginx\n",
           "mkdir -p /var/log/setup\n",
           "sleep 120", "\n",
           "docker pull ", { "Ref": "DockerImage" }, "\n",
