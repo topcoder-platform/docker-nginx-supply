@@ -41,10 +41,21 @@
       "Type" : "CommaDelimitedList",
       "Default" : "us-east-1d"
     },
+    "Region" : {
+      "Description" : "(Optional) Used for code deploy agent. Default value is used unless if specified",
+      "Type" : "String",
+      "Default" : "us-east-1"
+    },
     "DockerImage" : {
       "Description" : "Path of the Kafka Docker image (format: '[<registry>[:<port>]/]<repository>:<version>')",
       "Type" : "String",
       "Default" : "appiriodevops/nginx"
+    },
+    "EnvParam": {
+      "Description": "Environment",
+      "Type": "String",
+      "AllowedValues": ["dev","qa","prod"],
+      "MinLength": "1"
     }
   },
 
@@ -93,6 +104,61 @@
         "UserName" : {"Ref": "IAMUser"}
       }
     },
+     "EC2Role": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "nginx",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:Get*"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "EC2InstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Path": "/",
+        "Roles": [
+          {
+            "Ref": "EC2Role"
+          }
+        ]
+      }
+    },
 
     "ServerGroup" : {
       "Type" : "AWS::AutoScaling::AutoScalingGroup",
@@ -127,18 +193,28 @@
         "KeyName" : { "Ref" : "KeyName" },
         "ImageId" : { "Fn::FindInMap" : [ "RegionMap", { "Ref" : "AWS::Region" }, "AMI"] },
         "SecurityGroups" : [ { "Ref" : "ServerSecurityGroup" }, { "Ref": "AdminSecurityGroup" } ],
+        "IamInstanceProfile": { "Ref": "EC2InstanceProfile" },
         "AssociatePublicIpAddress": "false",
         "InstanceType" : { "Ref" : "InstanceType" },
         "UserData"       : { "Fn::Base64" : { "Fn::Join" : ["", [
           "#!/bin/bash -ex\n",
-
+          "yum update -y aws-cfn-bootstrap\n",
+          "yum install -y aws-cli\n",
           "# Helper function\n",
           "function error_exit\n",
           "{\n",
           "  cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandle" }, "'\n",
           "  exit 1\n",
           "}\n",
+          "# Install the AWS CodeDeploy Agent.\n",
+          "cd /home/ec2-user/\n",
+          "aws s3 cp 's3://aws-codedeploy-",{ "Ref" : "Region" },"/latest/codedeploy-agent.noarch.rpm' . || error_exit 'Failed to download AWS CodeDeploy Agent.'\n",
+          "yum -y install codedeploy-agent.noarch.rpm || error_exit 'Failed to install AWS CodeDeploy Agent.' \n",
+          "aws s3 cp 's3://appirio-platform-",{ "Ref" : "EnvParam" },"/services/common/dockercfg' ~/.dockercfg || error_exit 'Failed to download docker credentials.'\n",
           "# Set up and start the nginx service\n",
+          "mkdir -p /mnt/logs\n",
+          "mkdir -p /mnt/nginx\n",
+          "mkdir -p /var/log/setup\n",
           "sleep 120", "\n",
           "docker pull ", { "Ref": "DockerImage" }, "\n",
           "docker run ",

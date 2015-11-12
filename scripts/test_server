@@ -1,0 +1,3 @@
+#!/bin/bash
+echo "Starting new docker conatiner for nginx with new files" >> /var/log/setup/setup.log
+curl -XGET http://localhost:8000/sample/person/id/1

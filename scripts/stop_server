@@ -1,3 +1,10 @@
 #!/bin/bash
-sudo docker stop nginx
-sudo docker rm nginx
+id=`docker ps -q`
+if [[ $id ]]; then
+	docker stop nginx
+	docker rm nginx
+	RUN=`echo "Stopping nginx server" >> /var/log/setup/setup.log`
+	STOP=`docker stop $id`
+	echo "Removing nginx container" >> /var/log/setup/setup.log
+	docker rm -v $(docker ps -a -q -f status=exited)
+fi
