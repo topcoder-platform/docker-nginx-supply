@@ -2,15 +2,15 @@ version: 0.0
 os: linux
 files:
   - source: ./Dockerfile
-    destination: /tmp/nginx
+    destination: /mnt/nginx
   - source: ./nginx.conf
-    destination: /tmp/nginx
+    destination: /mnt/nginx
   - source: ./sites-enabled/api.work.topcoder.com.conf
-    destination: /tmp/nginx/sites-enabled
+    destination: /mnt/nginx/sites-enabled
   - source: ./includes/api.work.topcoder.com.nginx.conf
-    destination: /tmp/nginx/includes
+    destination: /mnt/nginx/includes
   - source: ./includes/upstream_apps.conf
-    destination: /tmp/nginx/includes
+    destination: /mnt/nginx/includes
 hooks:
   BeforeInstall:
     - location: scripts/start_server

@@ -1,10 +1,11 @@
 #!/bin/bash
-cd /tmp/nginx
-echo "Stopping nginx server"
-docker stop nginx
-echo "Removing nginx container"
-docker rm nginx
-echo "Building new docker conatiner for nginx"
-docker build -t nginx .
-echo "Starting new docker conatiner for nginx"
-docker run -d --name nginx -p 8000:8000 nginx
+cd /mnt/nginx
+id=`docker ps -q`
+if [[ $id ]]; 
+	echo "Stopping nginx server" >> /var/log/setup/setup.log
+	docker stop $id
+fi
+echo "Removing nginx container" >> /var/log/setup/setup.log
+docker rm -v $(docker ps -a -q -f status=exited)
+echo "Starting new docker conatiner for nginx with new files" >> /var/log/setup/setup.log
+docker run -d -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs --name nginx -p 8000:8000 appiriodevops/nginx
