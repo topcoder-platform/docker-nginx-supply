@@ -4,10 +4,8 @@ id=`docker ps -q`
 if [[ $id ]]; then
 	echo "Stopping nginx server" >> /var/log/setup/setup.log
 	docker stop $id
+	echo "Removing nginx container" >> /var/log/setup/setup.log
+	docker rm -v $(docker ps -a -q -f status=exited)
 fi
-echo "Removing nginx container" >> /var/log/setup/setup.log
-docker rm -v $(docker ps -a -q -f status=exited)
-docker stop
-docker rm nginx
 echo "Starting new docker conatiner for nginx with new files" >> /var/log/setup/setup.log
 docker run -d -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs --name nginx -p 8000:8000 appiriodevops/nginx
