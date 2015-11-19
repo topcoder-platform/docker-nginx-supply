@@ -2,7 +2,7 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
 
-  "Description" : "Launches an nginx webserver for demand backend services",
+  "Description" : "Launches an nginx webserver for supply front end and legacy sites",
 
   "Parameters" : {
     "InstanceType" : {
@@ -33,7 +33,7 @@
       "Type" : "AWS::EC2::VPC::Id"
     },
     "AdminSecurityGroup" : {
-      "Description" : "Existing security group that should be granted administrative access to Kafka",
+      "Description" : "Existing security group that should be granted administrative access",
       "Type" : "AWS::EC2::SecurityGroup::Id"
     },
     "AvailabilityZones": {
@@ -47,7 +47,7 @@
       "Default" : "us-east-1"
     },
     "DockerImage" : {
-      "Description" : "Path of the Kafka Docker image (format: '[<registry>[:<port>]/]<repository>:<version>')",
+      "Description" : "Path of the Docker image (format: '[<registry>[:<port>]/]<repository>:<version>')",
       "Type" : "String",
       "Default" : "appiriodevops/nginx"
     },
@@ -177,11 +177,9 @@
         "VPCZoneIdentifier" : { "Ref" : "Subnets" },
         "Tags" : [
           {
-            "Key" : "role",
-            "Value" : "kafka",
             "PropagateAtLaunch" : "true",
             "Key" : "Name",
-            "Value" : "nginx-demand"
+            "Value" : "nginx-supply"
           }
         ]
       }

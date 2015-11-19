@@ -3,8 +3,14 @@ os: linux
 files:
   - source: ./Dockerfile
     destination: /mnt/nginx
-  - source: ./nginx.conf
+  - source: .dist/nginx.conf
     destination: /mnt/nginx
+  - source: .dist/limits.conf
+    destination: /mnt/nginx
+  - source: ./sites-enabled/*conf
+    destination: /mnt/nginx/sites-enabled
+  - source: ./includes/*conf
+    destination: /mnt/nginx/includes
 hooks:
   BeforeInstall:
     - location: scripts/start_server
