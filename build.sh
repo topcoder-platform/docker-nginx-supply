@@ -23,24 +23,11 @@ fi
 
 if [ $ENV != "prod" ]
 then
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" dist/sites-enabled/www.topcoder.com.nginx.conf
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" dist/sites-enabled/apple.topcoder.com.nginx.conf
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" dist/sites-enabled/app.topcoder.com.nginx.conf
+	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" dist/sites-enabled/*conf
 else
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" dist/sites-enabled/www.topcoder.com.nginx.conf
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" dist/sites-enabled/apple.topcoder.com.nginx.conf
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" dist/sites-enabled/app.topcoder.com.nginx.conf
+	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" dist/sites-enabled/*conf
 fi
 
-perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/www.topcoder.com.nginx.conf
-perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/apple.topcoder.com.nginx.conf
-perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/app.topcoder.com.nginx.conf
-
-#if [ $ENV == "dev" ]
-#then
-#	perl -pi -e "s/0KG93JqIgDpdGzlUbpGzQSeD39L1rc/dev0KG93JqIgDpdGzlUbpGzQSeD39L1rc/g" dist/sites-enabled/www.topcoder.com.nginx.conf
-#else qa
-#	perl -pi -e "s/0KG93JqIgDpdGzlUbpGzQSeD39L1rc/qA0KG93JqIgDpdGzlUbpGzQSeD39L1rc/g" dist/sites-enabled/www.topcoder.com.nginx.conf
-#fi
+perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/*conf
 
 docker build -t appiriodevops/nginx-supply:dev .
