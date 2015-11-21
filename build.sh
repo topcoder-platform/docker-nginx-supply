@@ -1,6 +1,5 @@
 #!/bin/bash
 EVM=$ENV
-
 if [[ -z "$EVM" ]] ; then
 	echo "Environment should be set on startup with one of the below values"
 	echo "ENV must be one of - dev, qa, prod or local"
