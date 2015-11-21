@@ -12,4 +12,6 @@ ln -s /data/nginx/includes /etc/nginx/includes
 
 ./build.sh
 
+chown -Rf nginx:nginx /data/nginx
+
 nginx -t && nginx && tail -f /dev/null
