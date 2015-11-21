@@ -1,9 +1,8 @@
 #!/bin/bash -x
-ENV=$1
-if [[ $# != 1 || $ENV != "dev" && $ENV != "qa" && $ENV != "prod" ]]
+if [[ $ENV != "dev" && $ENV != "qa" && $ENV != "prod" && $ENV != "local"]]
 then
 	echo "Usage: ./build.sh ENV"
-	echo "ENV must be one of - dev, qa, prod"
+	echo "ENV must be one of - dev, qa, prod or local"
 	exit
 fi
 

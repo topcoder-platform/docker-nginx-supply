@@ -10,6 +10,6 @@ ln -s /data/nginx/limits.conf /etc/nginx/limits.conf
 ln -s /data/nginx/sites-enabled /etc/nginx/sites-enabled
 ln -s /data/nginx/includes /etc/nginx/includes
 
-sh build.sh $ENV
+sh build.sh
 
 nginx -t && nginx && tail -f /dev/null

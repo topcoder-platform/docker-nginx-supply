@@ -9,17 +9,6 @@ RUN mkdir -p /data/nginx
 
 WORKDIR /data/docker-nginx-supply
 
-RUN git pull && git checkout $ENV && git pull
-
-COPY dist/nginx.conf /data/nginx/nginx.conf
-COPY dist/limits.conf /data/nginx/limits.conf
-COPY dist/sites-enabled /data/nginx/sites-enabled
-COPY dist/includes /data/nginx/includes
-
-RUN ln -s /data/nginx/nginx.conf /etc/nginx/nginx.conf
-RUN ln -s /data/nginx/limits.conf /etc/nginx/limits.conf
-RUN ln -s /data/nginx/sites-enabled /etc/nginx/sites-enabled
-RUN ln -s /data/nginx/includes /etc/nginx/includes
 RUN chmod +x *.sh
 
 CMD ./run.sh
