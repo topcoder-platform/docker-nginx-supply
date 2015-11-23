@@ -5,9 +5,9 @@ files:
     destination: /mnt/nginx
   - source: ./Dockerfile
     destination: /mnt/nginx
-  - source: ./build.sh
+  - source: ./build
     destination: /mnt/nginx
-  - source: ./run.sh
+  - source: ./run
     destination: /mnt/nginx
 hooks:
   ApplicationStart:
