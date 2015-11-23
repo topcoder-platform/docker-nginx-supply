@@ -6,9 +6,9 @@ files:
   - source: ./src
     destination: /mnt/nginx/src
   - source: ./build.sh
-    destination: /mnt/nginx/build.sh
+    destination: /mnt/nginx
   - source: ./run.sh
-    destination: /mnt/nginx/run.sh
+    destination: /mnt/nginx
 hooks:
   BeforeInstall:
     - location: scripts/start_server
