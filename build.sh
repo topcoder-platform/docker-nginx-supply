@@ -7,11 +7,11 @@ if [[ -z "$ENV" ]] ; then
 fi
 
 if [[ "$ENV" == dev ]]; then
-	cp -R /data/docker-nginx-supply/src/dev /data/nginx/
+	cp -R /data/nginx/src/dev /data/nginx/
 fi
 
 if [[ "$ENV" == local ]]; then
-	cp -rf /data/docker-nginx-supply/src/local/includes/*.conf /data/nginx/includes/
+	cp -rf /data/nginx/src/local/includes/*.conf /data/nginx/includes/
 fi
 
 if [[ "$ENV" != prod ]]; then
