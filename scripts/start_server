@@ -8,4 +8,4 @@ if [[ $id ]]; then
 	docker rm -v $(docker ps -a -q -f status=exited)
 fi
 echo "Starting new docker conatiner for nginx with new files" >> /var/log/setup/setup.log
-docker run -d -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 appiriodevops/nginx-supply:latest
+docker run -d -e 'ENV=$environment' -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 appiriodevops/nginx-supply:latest

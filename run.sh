@@ -1,5 +1,5 @@
 #!/bin/bash -x
-git pull && git checkout $ENV && git pull
+#git pull && git checkout $ENV && git pull
 
 #cp -r /data/docker-nginx-supply/src/nginx.conf /data/nginx/
 #cp -r /data/docker-nginx-supply/src/limits.conf /data/nginx/
