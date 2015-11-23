@@ -7,10 +7,10 @@ RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
 RUN mkdir -p /var/log/nginx/logs && chown -Rf nginx:nginx /var/log/nginx
 RUN mkdir -p /data/nginx
 
-COPY build.sh /data/nginx/build.sh
-COPY run.sh /data/nginx/run.sh
+ADD build.sh /data/nginx/build.sh
+ADD run.sh /data/nginx/run.sh
 
 WORKDIR /data/nginx
-RUN chmod +x *.sh
+RUN chmod +x /data/nginx/*.sh
 
 CMD ./run.sh
