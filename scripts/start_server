@@ -1,5 +1,8 @@
 #!/bin/bash
 cd /mnt/nginx
+chmod +x run
+chmod +x build
+
 id=`docker ps -q`
 if [[ $id ]]; then
 	echo "Stopping nginx server" >> /var/log/setup/setup.log
