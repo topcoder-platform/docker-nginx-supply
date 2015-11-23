@@ -6,3 +6,4 @@ if [[ $id ]]; then
 	echo "Removing nginx container" >> /var/log/setup/setup.log
 	docker rm -v $(docker ps -a -q -f status=exited)
 fi
+rm -rf /mnt/nginx/*

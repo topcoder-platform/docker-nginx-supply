@@ -1,4 +1,4 @@
-FROM appiriodevops/nginx-supply:latest
+FROM appiriodevops/nginx-supply:base
 
 MAINTAINER Selva Umapathy "tumapathy@appirio.com"
 
@@ -7,8 +7,6 @@ RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
 RUN mkdir -p /var/log/nginx/logs && chown -Rf nginx:nginx /var/log/nginx
 RUN mkdir -p /data/nginx
 
-WORKDIR /data/docker-nginx-supply
-RUN git pull
-RUN chmod +x *.sh
+WORKDIR /data/nginx
 
-CMD ./run.sh
+CMD ./run
