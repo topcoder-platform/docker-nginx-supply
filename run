@@ -11,7 +11,7 @@ ln -s /data/nginx/limits.conf /etc/nginx/limits.conf
 ln -s /data/nginx/sites-enabled /etc/nginx/sites-enabled
 ln -s /data/nginx/includes /etc/nginx/includes
 
-./build.sh
+./build
 
 chown -Rf nginx:nginx /data/nginx
 
