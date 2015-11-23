@@ -8,7 +8,7 @@ RUN mkdir -p /var/log/nginx/logs && chown -Rf nginx:nginx /var/log/nginx
 RUN mkdir -p /data/nginx
 
 WORKDIR /data/docker-nginx-supply
-
+RUN git pull
 RUN chmod +x *.sh
 
 CMD ./run.sh
