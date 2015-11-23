@@ -1,16 +1,16 @@
 version: 0.0
 os: linux
 files:
-  - source: ./Dockerfile
-    destination: /mnt/nginx
   - source: ./src
+    destination: /mnt/nginx/src
+  - source: ./Dockerfile
     destination: /mnt/nginx
   - source: ./build.sh
     destination: /mnt/nginx
   - source: ./run.sh
     destination: /mnt/nginx
 hooks:
-  BeforeInstall:
+  ApplicationStart:
     - location: scripts/start_server
       timeout: 300
       runas: root
