@@ -7,7 +7,7 @@ if [[ -z "$ENV" ]] ; then
 fi
 
 if [[ "$ENV" == dev ]]; then
-	cp -R /data/nginx/dev /data/nginx/
+	cp -rf /data/nginx/dev/* /data/nginx/
 fi
 
 if [[ "$ENV" == local ]]; then
