@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# run local docker
+docker build --no-cache -t nginx-supply:latest .
+docker run -e "ENV=dev" -e "PROVIDER=local" -v `pwd`:/data/nginx -p 8000:8000 nginx-supply:latest
