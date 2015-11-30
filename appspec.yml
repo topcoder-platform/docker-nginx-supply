@@ -3,6 +3,8 @@ os: linux
 files:
   - source: ./src
     destination: /mnt/nginx
+  - source: ./dist
+    destination: /mnt/nginx
   - source: ./Dockerfile
     destination: /mnt/nginx
   - source: ./build
