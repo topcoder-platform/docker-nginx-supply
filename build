@@ -6,18 +6,23 @@ if [[ -z "$ENV" ]] ; then
 	exit
 fi
 
+cp /data/nginx/src/sites-enabled/*conf /data/nginx/dist/sites-enabled/
+cp /data/nginx/src/includes/*conf /data/nginx/dist/includes/
+cp /data/nginx/src/*conf /data/nginx/dist/
+
 if [[ "$ENV" == dev ]]; then
-	cp -rf /data/nginx/dev/* /data/nginx/
+	cp -rf /data/nginx/src/dev/* /data/nginx/dist/
 fi
 
-if [[ "$ENV" == local ]]; then
-	cp -rf /data/nginx/local/includes/*.conf /data/nginx/includes/
+if [[ "$PROVIDER" == local ]]; then
+	cp -rf /data/nginx/src/local/includes/*.conf /data/nginx/dist/includes/
+	echo "8.8.8.8 dns01.topcoder.com" >> /etc/hosts
 fi
 
 if [[ "$ENV" != prod ]]; then
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/sites-enabled/*conf
+	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/sites-enabled/*conf
 else
-	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/sites-enabled/*conf
+	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/dist/sites-enabled/*conf
 fi
 
-perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/sites-enabled/*conf
+perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/sites-enabled/*conf
