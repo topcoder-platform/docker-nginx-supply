@@ -4,7 +4,7 @@ files:
   - source: ./src
     destination: /mnt/nginx
   - source: ./Dockerfile
-    destination: /mnt/nginx
+    destination: /mnt/nginx/docker
   - source: ./build
     destination: /mnt/nginx
   - source: ./run
