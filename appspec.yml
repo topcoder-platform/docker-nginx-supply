@@ -12,9 +12,9 @@ files:
 hooks:
   ApplicationStart:
     - location: scripts/start_server
-      timeout: 300
+      timeout: 30
       runas: root
   ApplicationStop:
     - location: scripts/stop_server
-      timeout: 300
+      timeout: 30
       runas: root
