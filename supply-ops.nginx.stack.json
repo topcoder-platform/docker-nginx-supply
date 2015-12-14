@@ -20,6 +20,12 @@
       ],
       "ConstraintDescription" : "must be a valid, HVM-compatible EC2 instance type."
     },
+     "EnvParam": {
+      "Description": "Environment",
+      "Type": "String",
+      "AllowedValues": ["dev","qa","prod"],
+      "MinLength": "1"
+    },
     "KeyName" : {
       "Description" : "Existing EC2 KeyPair to be associated with all cluster instances for SSH access. For default AMIs, log in as the 'ec2-user' user.",
       "Type" : "AWS::EC2::KeyPair::KeyName"
@@ -28,12 +34,20 @@
       "Description" : "List of VPC subnet IDs for the cluster. Note: must match up with the passed AvailabilityZones.",
       "Type" : "List<AWS::EC2::Subnet::Id>"
     },
+    "ELBSubnet" : {
+      "Description" : "List of VPC subnet IDs for the ELB. Note: must match up with the passed AvailabilityZones.",
+      "Type" : "List<AWS::EC2::Subnet::Id>"
+    },
     "VpcId" : {
       "Description" : "VPC associated with the provided subnets",
       "Type" : "AWS::EC2::VPC::Id"
     },
     "AdminSecurityGroup" : {
       "Description" : "Existing security group that should be granted administrative access",
+      "Type" : "AWS::EC2::SecurityGroup::Id"
+    },
+     "ELBSecurityGroup" : {
+      "Description" : "Existing security group that should be used for ELB",
       "Type" : "AWS::EC2::SecurityGroup::Id"
     },
     "AvailabilityZones": {
@@ -56,6 +70,10 @@
       "Type": "String",
       "AllowedValues": ["dev","qa","prod"],
       "MinLength": "1"
+    },
+    "SSLCertificateName" : {
+       "Description" : "SSL Certificate Name",
+       "Type" : "String"
     }
   },
 
@@ -113,7 +131,7 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "ec2.amazonaws.com"
+                  "ec2.amazonaws.com", "codedeploy.amazonaws.com", "codepipeline.amazonaws.com"
                 ]
               },
               "Action": [
@@ -139,6 +157,20 @@
                   "Effect": "Allow",
                   "Action": [
                     "s3:Get*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codedeploy:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codepipeline:*"
                   ],
                   "Resource": "*"
                 }
@@ -174,6 +206,7 @@
         "MinSize" : "1",
         "MaxSize" : "1",
         "DesiredCapacity" : "1",
+        "LoadBalancerNames" : [ { "Ref" : "ElasticLoadBalancer" } ],
         "VPCZoneIdentifier" : { "Ref" : "Subnets" },
         "Tags" : [
           {
@@ -182,6 +215,47 @@
             "Value" : "nginx-supply"
           }
         ]
+      }
+    },
+
+    "ElasticLoadBalancer" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "Scheme" : "internal",
+        "SecurityGroups" : [ { "Ref" : "ELBSecurityGroup"}],
+        "Subnets" : { "Ref" : "ELBSubnet" },
+        "Listeners" : [ {
+          "LoadBalancerPort" : "80",
+          "InstancePort" : "8000",
+          "Protocol" : "HTTP"
+        },{
+         "LoadBalancerPort" : "443",
+         "SSLCertificateId": {
+            "Fn::Join":[
+               "",
+               [
+                  "arn:aws:iam::",
+                  {
+                     "Ref":"AWS::AccountId"
+                  },
+                  ":server-certificate",
+                  "/",
+                  {
+                    "Ref" : "SSLCertificateName"
+                  }
+               ]
+            ]
+          }, 
+         "InstancePort" : "8000",
+         "Protocol" : "HTTPS" 
+        }],
+        "HealthCheck" : {
+          "Target" : "TCP:8000",
+          "HealthyThreshold" : "3",
+          "UnhealthyThreshold" : "5",
+          "Interval" : "30",
+          "Timeout" : "5"
+        }
       }
     },
 
@@ -204,14 +278,18 @@
           "  cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandle" }, "'\n",
           "  exit 1\n",
           "}\n",
+          "echo export environment=", { "Ref" : "EnvParam"}," >> ~/.bash_profile\n",
+          "source ~/.bash_profile\n",
           "# Install the AWS CodeDeploy Agent.\n",
           "cd /home/ec2-user/\n",
+          "mkdir -p ~/.aws\n",
           "aws s3 cp 's3://aws-codedeploy-",{ "Ref" : "Region" },"/latest/codedeploy-agent.noarch.rpm' . || error_exit 'Failed to download AWS CodeDeploy Agent.'\n",
           "yum -y install codedeploy-agent.noarch.rpm || error_exit 'Failed to install AWS CodeDeploy Agent.' \n",
           "aws s3 cp 's3://appirio-platform-",{ "Ref" : "EnvParam" },"/services/common/dockercfg' ~/.dockercfg || error_exit 'Failed to download docker credentials.'\n",
+          "aws s3 cp 's3://appirio-platform-",{ "Ref" : "EnvParam" },"/services/common/codepipeline/config' ~/.aws/config|| error_exit 'Failed to download docker credentials.'\n",
           "# Set up and start the nginx service\n",
           "mkdir -p /mnt/logs\n",
-          "mkdir -p /mnt/nginx\n",
+          "mkdir -p /mnt/nginx/docker\n",
           "mkdir -p /var/log/setup\n",
           "sleep 120", "\n",
           "docker pull ", { "Ref": "DockerImage" }, "\n",
@@ -220,6 +298,7 @@
           "   -p 8000:8000",
           "   --name nginx",
           "   ", { "Ref": "DockerImage" }, "\n",
+          "aws codepipeline start-pipeline-execution --name nginx-supply\n",
 
           "# All is well so signal success\n",
           "cfn-signal -e 0 -r \"Stack setup complete\" '", { "Ref" : "WaitHandle" }, "'\n",
