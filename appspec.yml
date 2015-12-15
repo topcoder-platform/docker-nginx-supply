@@ -2,9 +2,9 @@ version: 0.0
 os: linux
 files:
   - source: ./src
-    destination: /mnt/nginx
+    destination: /mnt/nginx/src
   - source: ./Dockerfile
-    destination: /mnt/nginx
+    destination: /mnt/nginx/docker
   - source: ./build
     destination: /mnt/nginx
   - source: ./run
@@ -12,9 +12,9 @@ files:
 hooks:
   ApplicationStart:
     - location: scripts/start_server
-      timeout: 300
+      timeout: 30
       runas: root
   ApplicationStop:
     - location: scripts/stop_server
-      timeout: 300
+      timeout: 30
       runas: root
