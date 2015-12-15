@@ -11,4 +11,4 @@ if [[ $id ]]; then
 fi
 echo "Starting new docker conatiner for nginx with new files" >> /var/log/setup/setup.log
 docker build --no-cache -t nginx-supply:latest .
-docker run -d -e "ENV=dev" -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 nginx-supply:latest
+docker run -d -e 'ENV=$environment' -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 nginx-supply:latest
