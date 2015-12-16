@@ -12,9 +12,13 @@ files:
 hooks:
   ApplicationStart:
     - location: scripts/start_server
-      timeout: 30
+      timeout: 300
       runas: root
   ApplicationStop:
     - location: scripts/stop_server
+      timeout: 30
+      runas: root
+  ValidateService:
+    - location: scripts/test_server
       timeout: 30
       runas: root
