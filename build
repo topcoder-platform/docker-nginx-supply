@@ -18,6 +18,10 @@ if [[ "$ENV" == dev ]]; then
 	cp -rf /data/nginx/src/dev/* /data/nginx/dist/
 fi
 
+if [[ "$ENV" == qa ]]; then
+	cp -rf /data/nginx/src/qa/* /data/nginx/dist/
+fi
+
 if [[ "$PROVIDER" == local ]]; then
 	cp -rf /data/nginx/src/local/includes/*.conf /data/nginx/dist/includes/
 	echo "8.8.8.8 dns01.topcoder.com" >> /etc/hosts
