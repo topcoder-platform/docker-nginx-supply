@@ -11,3 +11,4 @@ rm -rf /mnt/nginx/run
 rm -rf /mnt/nginx/docker/Dockerfile
 rm -rf /mnt/nginx/build
 rm -rf /mnt/nginx/src
+rm -rf /mnt/nginx/dist
