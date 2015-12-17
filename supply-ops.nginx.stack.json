@@ -290,6 +290,7 @@
           "echo nfs01.prod.topcoder.com:/nfs_shares/member_photos /nfs_shares/member_photos  nfs rw,auto,noatime,nolock,bg,nfsvers=4,intr,tcp,actimeo=1800 0 0 >> /etc/fstab\n",
           "echo nfs01.prod.topcoder.com:/nfs_shares/captcha /nfs_shares/captcha  nfs rw,auto,noatime,nolock,bg,nfsvers=4,intr,tcp,actimeo=1800 0 0 >> /etc/fstab\n",
           "mount  -a || error_exit 'Failed to mount nfs.'\n",
+          "service docker restart\n",
           "echo export environment=", { "Ref" : "EnvParam"}," >> ~/.bash_profile\n",
           "source ~/.bash_profile\n",
           "# Install the AWS CodeDeploy Agent.\n",
