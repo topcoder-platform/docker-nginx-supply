@@ -74,6 +74,10 @@
     "SSLCertificateName" : {
        "Description" : "SSL Certificate Name",
        "Type" : "String"
+    },
+    "OpsworksStackId": {
+       "Description" : "Opsworks stack id for installing system tools",
+       "Type" : "String"
     }
   },
 
@@ -173,6 +177,27 @@
                     "codepipeline:*"
                   ],
                   "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "opsworks:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:*"
+                  ],
+                  "Resource": "*"
                 }
               ]
             }
@@ -204,8 +229,8 @@
         },
         "LaunchConfigurationName" : { "Ref" : "LaunchConfig" },
         "MinSize" : "1",
-        "MaxSize" : "1",
-        "DesiredCapacity" : "1",
+        "MaxSize" : "3",
+        "DesiredCapacity" : "2",
         "LoadBalancerNames" : [ { "Ref" : "ElasticLoadBalancer" } ],
         "VPCZoneIdentifier" : { "Ref" : "Subnets" },
         "Tags" : [
@@ -273,6 +298,8 @@
           "yum update -y aws-cfn-bootstrap\n",
           "yum install -y aws-cli\n",
           "yum install -y nfs-utils nfs-utils-lib\n",
+          "echo 'Defaults:root !requiretty' >> /etc/sudoers.d/cloud-init\n",
+          "su - root -c 'aws opsworks register --infrastructure-class ec2 --region us-east-1 --stack-id ", { "Ref" : "OpsworksStackId" }," --local' || error_exit 'Failed to register with opsworks'\n",
           "# Helper function\n",
           "function error_exit\n",
           "{\n",
@@ -311,7 +338,6 @@
           "   -p 8000:8000",
           "   --name nginx",
           "   ", { "Ref": "DockerImage" }, "\n",
-          "aws codepipeline start-pipeline-execution --name nginx-supply\n",
 
           "# All is well so signal success\n",
           "cfn-signal -e 0 -r \"Stack setup complete\" '", { "Ref" : "WaitHandle" }, "'\n",
