@@ -6,12 +6,20 @@ if [[ -z "$ENV" ]] ; then
 	exit
 fi
 
+rm -rf /data/nginx/dist
+mkdir -p /data/nginx/dist/sites-enabled
+mkdir -p /data/nginx/dist/includes
+
 cp /data/nginx/src/sites-enabled/*conf /data/nginx/dist/sites-enabled/
 cp /data/nginx/src/includes/*conf /data/nginx/dist/includes/
 cp /data/nginx/src/*conf /data/nginx/dist/
 
 if [[ "$ENV" == dev ]]; then
 	cp -rf /data/nginx/src/dev/* /data/nginx/dist/
+fi
+
+if [[ "$ENV" == qa ]]; then
+	cp -rf /data/nginx/src/qa/* /data/nginx/dist/
 fi
 
 if [[ "$PROVIDER" == local ]]; then
@@ -21,8 +29,11 @@ fi
 
 if [[ "$ENV" != prod ]]; then
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/sites-enabled/*conf
+	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/includes/*conf
 else
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/dist/sites-enabled/*conf
+	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/dist/includes/*conf
 fi
 
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/sites-enabled/*conf
+perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/includes/*conf

@@ -20,6 +20,12 @@
       ],
       "ConstraintDescription" : "must be a valid, HVM-compatible EC2 instance type."
     },
+     "EnvParam": {
+      "Description": "Environment",
+      "Type": "String",
+      "AllowedValues": ["dev","qa","prod"],
+      "MinLength": "1"
+    },
     "KeyName" : {
       "Description" : "Existing EC2 KeyPair to be associated with all cluster instances for SSH access. For default AMIs, log in as the 'ec2-user' user.",
       "Type" : "AWS::EC2::KeyPair::KeyName"
@@ -28,12 +34,20 @@
       "Description" : "List of VPC subnet IDs for the cluster. Note: must match up with the passed AvailabilityZones.",
       "Type" : "List<AWS::EC2::Subnet::Id>"
     },
+    "ELBSubnet" : {
+      "Description" : "List of VPC subnet IDs for the ELB. Note: must match up with the passed AvailabilityZones.",
+      "Type" : "List<AWS::EC2::Subnet::Id>"
+    },
     "VpcId" : {
       "Description" : "VPC associated with the provided subnets",
       "Type" : "AWS::EC2::VPC::Id"
     },
     "AdminSecurityGroup" : {
       "Description" : "Existing security group that should be granted administrative access",
+      "Type" : "AWS::EC2::SecurityGroup::Id"
+    },
+     "ELBSecurityGroup" : {
+      "Description" : "Existing security group that should be used for ELB",
       "Type" : "AWS::EC2::SecurityGroup::Id"
     },
     "AvailabilityZones": {
@@ -56,6 +70,14 @@
       "Type": "String",
       "AllowedValues": ["dev","qa","prod"],
       "MinLength": "1"
+    },
+    "SSLCertificateName" : {
+       "Description" : "SSL Certificate Name",
+       "Type" : "String"
+    },
+    "OpsworksStackId": {
+       "Description" : "Opsworks stack id for installing system tools",
+       "Type" : "String"
     }
   },
 
@@ -113,7 +135,7 @@
               "Effect": "Allow",
               "Principal": {
                 "Service": [
-                  "ec2.amazonaws.com"
+                  "ec2.amazonaws.com", "codedeploy.amazonaws.com", "codepipeline.amazonaws.com"
                 ]
               },
               "Action": [
@@ -139,6 +161,41 @@
                   "Effect": "Allow",
                   "Action": [
                     "s3:Get*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codedeploy:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "codepipeline:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "opsworks:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "autoscaling:*"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:*"
                   ],
                   "Resource": "*"
                 }
@@ -172,8 +229,9 @@
         },
         "LaunchConfigurationName" : { "Ref" : "LaunchConfig" },
         "MinSize" : "1",
-        "MaxSize" : "1",
-        "DesiredCapacity" : "1",
+        "MaxSize" : "3",
+        "DesiredCapacity" : "2",
+        "LoadBalancerNames" : [ { "Ref" : "ElasticLoadBalancer" } ],
         "VPCZoneIdentifier" : { "Ref" : "Subnets" },
         "Tags" : [
           {
@@ -182,6 +240,47 @@
             "Value" : "nginx-supply"
           }
         ]
+      }
+    },
+
+    "ElasticLoadBalancer" : {
+      "Type" : "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties" : {
+        "Scheme" : "internal",
+        "SecurityGroups" : [ { "Ref" : "ELBSecurityGroup"}],
+        "Subnets" : { "Ref" : "ELBSubnet" },
+        "Listeners" : [ {
+          "LoadBalancerPort" : "80",
+          "InstancePort" : "8000",
+          "Protocol" : "HTTP"
+        },{
+         "LoadBalancerPort" : "443",
+         "SSLCertificateId": {
+            "Fn::Join":[
+               "",
+               [
+                  "arn:aws:iam::",
+                  {
+                     "Ref":"AWS::AccountId"
+                  },
+                  ":server-certificate",
+                  "/",
+                  {
+                    "Ref" : "SSLCertificateName"
+                  }
+               ]
+            ]
+          }, 
+         "InstancePort" : "8000",
+         "Protocol" : "HTTPS" 
+        }],
+        "HealthCheck" : {
+          "Target" : "TCP:8000",
+          "HealthyThreshold" : "3",
+          "UnhealthyThreshold" : "5",
+          "Interval" : "30",
+          "Timeout" : "5"
+        }
       }
     },
 
@@ -198,20 +297,39 @@
           "#!/bin/bash -ex\n",
           "yum update -y aws-cfn-bootstrap\n",
           "yum install -y aws-cli\n",
+          "yum install -y nfs-utils nfs-utils-lib\n",
+          "echo 'Defaults:root !requiretty' >> /etc/sudoers.d/cloud-init\n",
+          "su - root -c 'aws opsworks register --infrastructure-class ec2 --region us-east-1 --stack-id ", { "Ref" : "OpsworksStackId" }," --local' || error_exit 'Failed to register with opsworks'\n",
           "# Helper function\n",
           "function error_exit\n",
           "{\n",
           "  cfn-signal -e 1 -r \"$1\" '", { "Ref" : "WaitHandle" }, "'\n",
           "  exit 1\n",
           "}\n",
+          "#Setup the NFS mount endpoints\n",
+          "mkdir -p /mnt/nginx/apache_docs\n",
+          "mkdir -p /mnt/nginx/wordpress\n",
+          "mkdir -p /mnt/nginx/blogs\n",
+          "mkdir -p /nfs_shares/member_photos\n",
+          "mkdir -p /nfs_shares/captcha\n",
+          "echo nfs01.prod.topcoder.com:/nfs_shares/apache_docs /mnt/nginx/apache_docs  nfs rw,auto,noatime,nolock,bg,nfsvers=4,intr,tcp,actimeo=1800 0 0 >> /etc/fstab\n",
+          "echo nfs01.prod.topcoder.com:/nfs_shares/wordpress /mnt/nginx/blogs  nfs rw,auto,noatime,nolock,bg,nfsvers=4,intr,tcp,actimeo=1800 0 0 >> /etc/fstab\n",
+          "echo nfs01.prod.topcoder.com:/nfs_shares/member_photos /nfs_shares/member_photos  nfs rw,auto,noatime,nolock,bg,nfsvers=4,intr,tcp,actimeo=1800 0 0 >> /etc/fstab\n",
+          "echo nfs01.prod.topcoder.com:/nfs_shares/captcha /nfs_shares/captcha  nfs rw,auto,noatime,nolock,bg,nfsvers=4,intr,tcp,actimeo=1800 0 0 >> /etc/fstab\n",
+          "mount  -a || error_exit 'Failed to mount nfs.'\n",
+          "service docker restart\n",
+          "echo export environment=", { "Ref" : "EnvParam"}," >> ~/.bash_profile\n",
+          "source ~/.bash_profile\n",
           "# Install the AWS CodeDeploy Agent.\n",
           "cd /home/ec2-user/\n",
+          "mkdir -p ~/.aws\n",
           "aws s3 cp 's3://aws-codedeploy-",{ "Ref" : "Region" },"/latest/codedeploy-agent.noarch.rpm' . || error_exit 'Failed to download AWS CodeDeploy Agent.'\n",
           "yum -y install codedeploy-agent.noarch.rpm || error_exit 'Failed to install AWS CodeDeploy Agent.' \n",
           "aws s3 cp 's3://appirio-platform-",{ "Ref" : "EnvParam" },"/services/common/dockercfg' ~/.dockercfg || error_exit 'Failed to download docker credentials.'\n",
+          "aws s3 cp 's3://appirio-platform-",{ "Ref" : "EnvParam" },"/services/common/codepipeline/config' ~/.aws/config|| error_exit 'Failed to download docker credentials.'\n",
           "# Set up and start the nginx service\n",
           "mkdir -p /mnt/logs\n",
-          "mkdir -p /mnt/nginx\n",
+          "mkdir -p /mnt/nginx/docker\n",
           "mkdir -p /var/log/setup\n",
           "sleep 120", "\n",
           "docker pull ", { "Ref": "DockerImage" }, "\n",
