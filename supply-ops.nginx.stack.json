@@ -338,7 +338,7 @@
           "   -p 8000:8000",
           "   --name nginx",
           "   ", { "Ref": "DockerImage" }, "\n",
-
+          "aws codepipeline start-pipeline-execution --name nginx-supply\n",
           "# All is well so signal success\n",
           "cfn-signal -e 0 -r \"Stack setup complete\" '", { "Ref" : "WaitHandle" }, "'\n",
 
