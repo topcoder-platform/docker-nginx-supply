@@ -30,6 +30,7 @@ fi
 if [[ "$ENV" != prod ]]; then
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/sites-enabled/*conf
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/includes/*conf
+#	perl -pi -e "s/\{\{ENV_WWWTC\}\}/wwwtc\.staging\.wpengine\.com/g" /data/nginx/dist/sites-enabled/*conf
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/sites-enabled/*conf
 else
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/dist/sites-enabled/*conf
