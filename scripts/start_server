@@ -11,6 +11,8 @@ if [[ $id ]]; then
 fi
 echo "Starting new docker conatiner for nginx with new files" >> /var/log/setup/setup.log
 cd /mnt/nginx/docker
-docker build --no-cache -t nginx-supply:latest .
+docker build --no-cache -t nginx-supply:le .
 source ~/.bash_profile 
-docker run -d -e "ENV=${environment}" -v /nfs_shares:/nfs_shares -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 -p 8001:8001 nginx-supply:latest
+docker run -d -e "ENV=${environment}" -v /nfs_shares:/nfs_shares -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 -p 8001:8001 nginx-supply:le
+cat /tmp/logentries.key |docker exec -i `docker ps|grep nginx-supply:le|cut -d\  -f1` sh -c 'cat > /tmp/logentries.key'
+echo dev-nginx-supply-`hostname` |docker exec -i `docker ps|grep nginx-supply:le|cut -d\  -f1` sh -c 'cat > /tmp/logentries.hostname'
