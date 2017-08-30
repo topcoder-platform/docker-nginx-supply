@@ -1,4 +1,4 @@
-FROM appiriodevops/nginx-supply:le
+FROM appiriodevops/nginx-supply:base
 
 MAINTAINER Selva Umapathy "tumapathy@appirio.com"
 
