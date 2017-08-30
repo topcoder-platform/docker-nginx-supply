@@ -9,6 +9,10 @@ files:
     destination: /mnt/nginx
   - source: ./run
     destination: /mnt/nginx
+  - source: ./init_logentries.sh
+    destination: /mnt/nginx
+  - source: ./logentries.config
+    destination: /mnt/nginx
 hooks:
   ApplicationStart:
     - location: scripts/start_server
