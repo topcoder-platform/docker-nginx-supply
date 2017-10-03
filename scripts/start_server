@@ -2,7 +2,6 @@
 cd /mnt/nginx
 chmod +x run
 chmod +x build
-chmod +x init_logentries.sh
 id=`docker ps -q`
 if [[ $id ]]; then
 	echo "Stopping nginx server" >> /var/log/setup/setup.log
@@ -16,5 +15,4 @@ docker build --no-cache -t nginx-supply:le .
 source ~/.bash_profile 
 docker run -d -e "ENV=${environment}" -v /nfs_shares:/nfs_shares -v /mnt/nginx:/data/nginx -v /mnt/logs:/var/log/nginx/logs -p 8000:8000 -p 8001:8001 nginx-supply:le
 cat /tmp/logentries.key |docker exec -i `docker ps|grep nginx-supply:le|cut -d\  -f1` sh -c 'cat > /tmp/logentries.key'
-echo ${environment}-nginx-supply-`hostname` |docker exec -i `docker ps|grep nginx-supply:le|cut -d\  -f1` sh -c 'cat > /tmp/logentries.hostname'
-docker exec `docker ps|grep nginx-supply:le|cut -d\  -f1` /data/nginx/init_logentries.sh
+echo dev-nginx-supply-`hostname` |docker exec -i `docker ps|grep nginx-supply:le|cut -d\  -f1` sh -c 'cat > /tmp/logentries.hostname'
