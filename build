@@ -39,3 +39,5 @@ fi
 
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/includes/*conf
+
+/root/init_logentries.sh
