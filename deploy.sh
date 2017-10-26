@@ -52,19 +52,22 @@ push_ecr_image() {
 
 }
 
-deploy_cluster() {
-
-    #family="nginx-api-dev-task"
+update_cluster_taskdef() {
 
     make_task_def
     register_definition
+
+}
+deploy_cluster() {
+
+    AWS_ECS_SERVICE=$1
     update_result=$(aws ecs update-service --cluster $AWS_ECS_CLUSTER --service $AWS_ECS_SERVICE --task-definition $revision )
     #echo $update_result
     result=$(echo $update_result | $JQ '.service.taskDefinition' )
     echo $result
     if [[ $result != $revision ]]; then
         echo "Error updating service."
-        return 1
+        exit 1
     fi
 
     echo "Update service intialised successfully for deployment"
@@ -126,6 +129,7 @@ register_definition() {
 }
 
 check_service_status() {
+        AWS_ECS_SERVICE=$1
         counter=0
 	sleep 60
         servicestatus=`aws ecs describe-services --service $AWS_ECS_SERVICE --cluster $AWS_ECS_CLUSTER | $JQ '.services[].events[0].message'`
@@ -148,3 +152,22 @@ configure_aws_cli
 push_ecr_image
 #deploy_cluster
 #check_service_status
+
+update_cluster_taskdef
+
+#Service name will be provided with comma seperated
+AWS_ECS_SERVICE_NAMES=`echo ${AWS_ECS_SERVICE} | sed 's/,/ /g' | sed 'N;s/\n//' `
+IFS=' ' read -a AWS_ECS_SERVICES <<< $AWS_ECS_SERVICE_NAMES
+if [ ${#AWS_ECS_SERVICES[@]} -gt 0 ]; then
+     echo "${#AWS_ECS_SERVICES[@]} service are going to be updated"
+     for AWS_ECS_SERVICE_NAME in "${AWS_ECS_SERVICES[@]}"
+     do
+       echo "updating ECS Cluster Service - $AWS_ECS_SERVICE_NAME"
+       deploy_cluster "$AWS_ECS_SERVICE_NAME"
+       check_service_status "$AWS_ECS_SERVICE_NAME"
+     done
+else
+     echo "Kindly check the service name in Parameter"
+     usage
+     exit 1
+fi
