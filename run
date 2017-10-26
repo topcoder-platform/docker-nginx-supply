@@ -1,11 +1,8 @@
 #!/bin/bash -x
-./build
 
-ln -s /data/nginx/dist/nginx.conf /etc/nginx/nginx.conf
-ln -s /data/nginx/dist/limits.conf /etc/nginx/limits.conf
-ln -s /data/nginx/dist/sites-enabled /etc/nginx/sites-enabled
-ln -s /data/nginx/dist/includes /etc/nginx/includes
+if [[ "$PROVIDER" == local ]]; then
+	echo "8.8.8.8 dns01.topcoder.com" >> /etc/hosts
+fi
 
-chown -Rf nginx:nginx /data/nginx/dist
+nginx -t && nginx  && tail -f /var/log/nginx/logs/error.log -f /var/log/nginx/logs/access.log
 
-nginx -t && nginx && tail -f /dev/null
