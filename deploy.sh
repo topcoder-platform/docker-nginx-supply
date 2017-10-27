@@ -107,13 +107,11 @@ make_task_def(){
 				"mountPoints": [
 					{
 					  "containerPath": "/nfs_shares",
-					  "sourceVolume": "nfs_share",
-					  "readOnly": null
+					  "sourceVolume": "nfs_share"
 					},
 					{
 					  "containerPath": "/data/nginx",
-					  "sourceVolume": "nginxdata",
-					  "readOnly": null
+					  "sourceVolume": "nginxdata"
 					}
 				],
 				"logConfiguration": {
