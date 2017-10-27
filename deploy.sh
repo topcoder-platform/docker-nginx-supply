@@ -75,7 +75,7 @@ deploy_cluster() {
 }
 
 make_task_def(){
-	task_template='"containerDefinitions": [
+	task_template='[
 		{
 				"name": "%s",
 				"image": "%s.dkr.ecr.%s.amazonaws.com/%s:%s",
@@ -125,8 +125,8 @@ make_task_def(){
 						}
 				}
 		}
-	],
-	"volumes": [
+	]'
+	volume_def='[
 		{
 		  "host": {
 			"sourcePath": "/nfs_shares"
@@ -145,7 +145,7 @@ make_task_def(){
 }
 
 register_definition() {
-    if revision=$(aws ecs register-task-definition --container-definitions "$task_def" --family $family | $JQ '.taskDefinition.taskDefinitionArn'); then
+    if revision=$(aws ecs register-task-definition --container-definitions "$task_def" --volumes volume_def --family $family | $JQ '.taskDefinition.taskDefinitionArn'); then
         echo "Revision: $revision"
     else
         echo "Failed to register task definition"
