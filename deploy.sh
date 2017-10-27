@@ -145,7 +145,7 @@ make_task_def(){
 }
 
 register_definition() {
-    if revision=$(aws ecs register-task-definition --container-definitions "$task_def" --volumes volume_def --family $family | $JQ '.taskDefinition.taskDefinitionArn'); then
+    if revision=$(aws ecs register-task-definition --container-definitions "$task_def" --volumes "$volume_def" --family $family | $JQ '.taskDefinition.taskDefinitionArn'); then
         echo "Revision: $revision"
     else
         echo "Failed to register task definition"
