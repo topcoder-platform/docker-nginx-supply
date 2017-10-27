@@ -75,7 +75,7 @@ deploy_cluster() {
 }
 
 make_task_def(){
-	task_template='[
+	task_template='"containerDefinitions": [
 		{
 				"name": "%s",
 				"image": "%s.dkr.ecr.%s.amazonaws.com/%s:%s",
@@ -104,6 +104,18 @@ make_task_def(){
 								"protocol": "tcp"
 						}						
 				],
+				"mountPoints": [
+					{
+					  "containerPath": "/nfs_shares",
+					  "sourceVolume": "nfs_share",
+					  "readOnly": null
+					},
+					{
+					  "containerPath": "/data/nginx",
+					  "sourceVolume": "nginxdata",
+					  "readOnly": null
+					}
+				],
 				"logConfiguration": {
 						"logDriver": "awslogs",
 						"options": {
@@ -112,6 +124,20 @@ make_task_def(){
 								"awslogs-stream-prefix": "%s_%s"
 						}
 				}
+		}
+	],
+	"volumes": [
+		{
+		  "host": {
+			"sourcePath": "/nfs_shares"
+		  },
+		  "name": "nfs_share"
+		},
+		{
+		  "host": {
+			"sourcePath": "/mnt/nginx"
+		  },
+		  "name": "nginxdata"
 		}
 	]'
 	

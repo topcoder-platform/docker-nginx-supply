@@ -5,18 +5,19 @@ LABEL app="nginx-supply" version="1.0"
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
 RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
 RUN mkdir -p /var/log/nginx/logs && chown -Rf nginx:nginx /var/log/nginx
+RUN mkdir -p /data/nginxconf
 
-COPY dist /data/nginx/dist
-COPY run /data/nginx/
+COPY dist /data/nginxconf/dist
+COPY run /data/nginxconf/
 
-RUN ln -s /data/nginx/dist/nginx.conf /etc/nginx/nginx.conf
-RUN ln -s /data/nginx/dist/limits.conf /etc/nginx/limits.conf
-RUN ln -s /data/nginx/dist/sites-enabled /etc/nginx/sites-enabled
-RUN ln -s /data/nginx/dist/includes /etc/nginx/includes
+RUN ln -s /data/nginxconf/dist/nginx.conf /etc/nginx/nginx.conf
+RUN ln -s /data/nginxconf/dist/limits.conf /etc/nginx/limits.conf
+RUN ln -s /data/nginxconf/dist/sites-enabled /etc/nginx/sites-enabled
+RUN ln -s /data/nginxconf/dist/includes /etc/nginx/includes
 
-RUN chown -Rf nginx:nginx /data/nginx/dist
+RUN chown -Rf nginx:nginx /data/nginxconf/dist
 
-WORKDIR /data/nginx
+WORKDIR /data/nginxconf
 
 CMD ./run
 
