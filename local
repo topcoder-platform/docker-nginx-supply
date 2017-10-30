@@ -2,5 +2,5 @@
 
 # run local docker
 # docker build --no-cache -t nginx-supply:latest .
-./buildimage.sh dev local
+./buildimage.sh DEV local
 docker run -e "ENV=dev" -e "PROVIDER=local" -p 8000:8000 -p 8001:8001 nginx-supply:latest
