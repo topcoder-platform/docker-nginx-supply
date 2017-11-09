@@ -1,0 +1,8 @@
+#!/bin/bash -x
+
+if [[ "$PROVIDER" == local ]]; then
+	echo "8.8.8.8 dns01.topcoder.com" >> /etc/hosts
+fi
+
+nginx -t && nginx  && tail -f /var/log/nginx/logs/error.log -f /var/log/nginx/logs/access.log
+
