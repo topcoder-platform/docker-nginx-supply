@@ -1,10 +1,6 @@
-FROM debian:8
+FROM 811668436784.dkr.ecr.us-east-1.amazonaws.com/nginx-supply:base
 
 LABEL app="nginx-supply" version="1.0"
-
-RUN mkdir /data
-COPY imagesetup.sh /data/imagesetup.sh
-RUN bash /data/imagesetup.sh
 
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
 RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
