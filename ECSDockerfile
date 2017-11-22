@@ -1,4 +1,4 @@
-FROM 811668436784.dkr.ecr.us-east-1.amazonaws.com/nginx-supply:base
+FROM appiriodevops/nginx-supply:le
 
 LABEL app="nginx-supply" version="1.0"
 
