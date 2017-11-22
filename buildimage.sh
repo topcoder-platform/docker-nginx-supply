@@ -67,7 +67,8 @@ if [[ "$PROVIDER" == local ]]; then
 	docker build --no-cache -t nginx-supply:latest .
 else
 	configure_aws_cli
-	eval $(aws ecr get-login --region $AWS_REGION --no-include-email)
+	aws s3 cp "s3://appirio-platform-$ENV/services/common/dockercfg" ~/.dockercfg
+	#eval $(aws ecr get-login --region $AWS_REGION --no-include-email)
 	# Builds Docker image of the app.
 	TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_REPOSITORY:$CIRCLE_SHA1
 	docker build -f ECSDockerfile -t $TAG .
