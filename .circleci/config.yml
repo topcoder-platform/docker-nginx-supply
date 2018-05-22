@@ -1,0 +1,94 @@
+version: 2
+
+jobs:
+  # Build & Deploy against development backend
+  "build-dev":
+    docker:
+      - image: docker:17.06.1-ce-git
+    steps:
+      # Initialization.
+      - checkout
+      - setup_remote_docker
+      # Build of Docker image.
+      - run:
+          name: Installation of build dependencies.
+          command: |
+            apk add --no-cache bash
+            apk add --no-cache jq py-pip sudo perl curl
+            sudo pip install awscli --upgrade      
+      - run:
+          name: Build of Docker image
+          command: ./buildimage.sh DEV
+
+      # Deployment.
+      - deploy:
+          command: aws --version && ./deploy.sh DEV $CIRCLE_SHA1
+          
+  # Build & Deploy against production backend
+  "build-prod":
+    docker:
+      - image: docker:17.06.1-ce-git
+    steps:
+      # Initialization.
+      - checkout
+      - setup_remote_docker
+      # Build of Docker image.
+      - run:
+          name: Installation of build dependencies.
+          command: |
+            apk add --no-cache bash
+            apk add --no-cache jq py-pip sudo perl curl
+            sudo pip install awscli --upgrade      
+      - run:
+          name: Build of Docker image
+          command: ./buildimage.sh PROD
+
+      # Deployment.
+      - deploy:
+          command: aws --version && ./deploy.sh PROD $CIRCLE_SHA1
+
+  # Build & Deploy against QA backend
+  "build-qa":
+    docker:
+      - image: docker:17.06.1-ce-git
+    steps:
+      # Initialization.
+      - checkout
+      - setup_remote_docker
+      # Build of Docker image.
+      - run:
+          name: Installation of build dependencies.
+          command: |
+            apk add --no-cache bash
+            apk add --no-cache jq py-pip sudo perl curl
+            sudo pip install awscli --upgrade      
+      - run:
+          name: Build of Docker image
+          command: ./buildimage.sh QA
+
+      # Deployment.
+      - deploy:
+          command: aws --version && ./deploy.sh QA $CIRCLE_SHA1
+          
+workflows:
+  version: 2
+  build:
+    jobs:
+      # Development builds are executed on "develop" branch only.
+      - "build-dev":
+          filters:
+            branches:
+              only: [dev, dev-circleci]
+
+      # Production builds are exectuted only on tagged commits to the
+      # master branch.
+      - "build-prod":
+          filters:
+            branches:
+              only: master 
+
+      # Development builds are executed on "qa" branch only.
+      - "build-qa":
+          filters:
+            branches:
+              only: qa
