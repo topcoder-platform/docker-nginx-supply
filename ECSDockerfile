@@ -1,4 +1,4 @@
-FROM appiriodevops/nginx-supply:le
+FROM appiriodevops/deb-jessie-nginx114:dev.201807031637
 
 LABEL app="nginx-supply" version="1.0"
 
