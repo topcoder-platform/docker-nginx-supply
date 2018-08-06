@@ -1,6 +1,13 @@
-FROM appiriodevops/nginx-supply:le
+FROM ubuntu:xenial
 
 LABEL app="nginx-supply" version="1.0"
+
+RUN apt update
+RUN apt-get install software-properties-common -y
+RUN add-apt-repository ppa:mtwomey/nginx-topcoder-aws -y
+RUN apt-get update
+RUN apt install nginx-topcoder-full -y
+RUN adduser --system --no-create-home --group nginx
 
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
 RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
