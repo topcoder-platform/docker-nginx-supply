@@ -78,7 +78,7 @@ workflows:
       - "build-dev":
           filters:
             branches:
-              only: [dev, dev-circleci]
+              only: [dev, dev-ppa-integ]
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
