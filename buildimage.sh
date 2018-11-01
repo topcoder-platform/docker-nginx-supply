@@ -35,6 +35,7 @@ mkdir -p dist/includes
 cp src/sites-enabled/*conf dist/sites-enabled/
 cp src/includes/*conf dist/includes/
 cp src/*conf dist/
+cp -rvf src/customerrorpage dist/
 
 if [[ "$ENV" == dev ]]; then
 	cp -rf src/dev/* dist/
