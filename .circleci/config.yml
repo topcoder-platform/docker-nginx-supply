@@ -78,7 +78,7 @@ workflows:
       - "build-dev":
           filters:
             branches:
-              only: [dev, dev-ppa-integ]
+              only: [dev, dev-ppa-integ, dev-customerrorpages]
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
