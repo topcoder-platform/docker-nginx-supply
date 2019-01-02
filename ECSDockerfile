@@ -14,6 +14,7 @@ RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
 RUN mkdir -p /var/log/nginx/logs && chown -Rf nginx:nginx /var/log/nginx
 RUN mkdir -p /data/nginxconf
 RUN mkdir -p /home/apps/nginx/app
+RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf nginx:nginx /usr/share/nginx/html/customerrorpage
 
 COPY dist /data/nginxconf/dist
 COPY rund /data/nginxconf/
@@ -23,6 +24,7 @@ RUN ln -s /data/nginxconf/dist/nginx.conf /etc/nginx/nginx.conf
 RUN ln -s /data/nginxconf/dist/limits.conf /etc/nginx/limits.conf
 RUN ln -s /data/nginxconf/dist/sites-enabled /etc/nginx/sites-enabled
 RUN ln -s /data/nginxconf/dist/includes /etc/nginx/includes
+RUN ln -s /data/nginxconf/dist/customerrorpage /usr/share/nginx/html/customerrorpage
 
 RUN chown -Rf nginx:nginx /data/nginxconf/dist
 
