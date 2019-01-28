@@ -1,5 +1,8 @@
 #!/bin/bash -x
 
+crontab /data/nginxconf/scripts/root.cron
+/usr/sbin/cron
+
 if [[ "$PROVIDER" == local ]]; then
 	echo "8.8.8.8 dns01.topcoder.com" >> /etc/hosts
 fi
