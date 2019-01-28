@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-crontab /data/nginx/scripts/root.cron
+crontab /data/nginxconf/scripts/root.cron
 /usr/sbin/cron
 
 if [[ "$PROVIDER" == local ]]; then
