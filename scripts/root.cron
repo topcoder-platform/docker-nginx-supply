@@ -1,1 +1,1 @@
-*/5 * * * *					/data/nginx/scripts/nginx-HUP-from-container.sh
+*/5 * * * *					/data/nginxconf/scripts/nginx-HUP-from-container.sh
