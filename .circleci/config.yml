@@ -1,74 +1,65 @@
 version: 2
 
+defaults: &defaults
+  docker:
+    - image: circleci/python:2.7-stretch-browsers
+install_dependency: &install_dependency
+  name: Installation of build and deployment dependencies.
+  command: |
+    sudo apt install jq
+    sudo pip install awscli --upgrade
+    sudo pip install docker-compose
+install_deploysuite: &install_deploysuite
+  name: Installation of install_deploysuite.
+  command: |
+    git clone --branch v1.3 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
+    cp ./../buildscript/master_deploy.sh .
+    cp ./../buildscript/buildenv.sh .
+    cp ./../buildscript/awsconfiguration.sh . 
+build_steps: &build_steps
+      # Initialization1.
+      - checkout
+      - setup_remote_docker 
+      - run: *install_dependency     
+      - run: *install_deploysuite
+      # Build of Docker image.     
+      - run:
+          name: Build of Docker image
+          command: ./buildimage.sh ${DEPLOY_ENV}
+      # Deployment.
+      - deploy:
+          name: Deploy to AWS
+          command: |                  
+            #aws --version && ./deploy.sh ${DEPLOY_ENV} $CIRCLE_SHA1
+            ./awsconfiguration.sh ${DEPLOY_ENV}
+            source awsenvconf
+            ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-deployvar
+            source buildenvvar
+            ./master_deploy.sh -d ECS -e ${DEPLOY_ENV} -t latest -s ${LOGICAL_ENV}-docker-nginx-supply-appvar -i nginx-supply
 jobs:
   # Build & Deploy against development backend
   "build-dev":
-    docker:
-      - image: docker:17.06.1-ce-git
-    steps:
-      # Initialization.
-      - checkout
-      - setup_remote_docker
-      # Build of Docker image.
-      - run:
-          name: Installation of build dependencies.
-          command: |
-            apk add --no-cache bash
-            apk add --no-cache jq py-pip sudo perl curl
-            sudo pip install awscli --upgrade      
-      - run:
-          name: Build of Docker image
-          command: ./buildimage.sh DEV
-
-      # Deployment.
-      - deploy:
-          command: aws --version && ./deploy.sh DEV $CIRCLE_SHA1
+    <<: *defaults
+    environment:
+      DEPLOY_ENV: "DEV" 
+      LOGICAL_ENV: "dev"
+    steps: *build_steps 
           
   # Build & Deploy against production backend
   "build-prod":
-    docker:
-      - image: docker:17.06.1-ce-git
-    steps:
-      # Initialization.
-      - checkout
-      - setup_remote_docker
-      # Build of Docker image.
-      - run:
-          name: Installation of build dependencies.
-          command: |
-            apk add --no-cache bash
-            apk add --no-cache jq py-pip sudo perl curl
-            sudo pip install awscli --upgrade      
-      - run:
-          name: Build of Docker image
-          command: ./buildimage.sh PROD
-
-      # Deployment.
-      - deploy:
-          command: aws --version && ./deploy.sh PROD $CIRCLE_SHA1
+    <<: *defaults
+    environment:
+      DEPLOY_ENV: "PROD"
+      LOGICAL_ENV: "prod"      
+    steps: *build_steps   
 
   # Build & Deploy against QA backend
   "build-qa":
-    docker:
-      - image: docker:17.06.1-ce-git
-    steps:
-      # Initialization.
-      - checkout
-      - setup_remote_docker
-      # Build of Docker image.
-      - run:
-          name: Installation of build dependencies.
-          command: |
-            apk add --no-cache bash
-            apk add --no-cache jq py-pip sudo perl curl
-            sudo pip install awscli --upgrade      
-      - run:
-          name: Build of Docker image
-          command: ./buildimage.sh QA
-
-      # Deployment.
-      - deploy:
-          command: aws --version && ./deploy.sh QA $CIRCLE_SHA1
+    <<: *defaults
+    environment:
+      DEPLOY_ENV: "QA"
+      LOGICAL_ENV: "qa"    
+    steps: *build_steps   
           
 workflows:
   version: 2
@@ -76,19 +67,22 @@ workflows:
     jobs:
       # Development builds are executed on "develop" branch only.
       - "build-dev":
+          context : org-global      
           filters:
             branches:
-              only: [dev, dev-ppa-integ, dev-customerrorpages]
+              only: [dev, dev-circleci, dev-sts]
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
       - "build-prod":
+          context : org-global      
           filters:
             branches:
               only: master 
 
       # Development builds are executed on "qa" branch only.
       - "build-qa":
+          context : org-global      
           filters:
             branches:
               only: qa
