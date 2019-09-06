@@ -26,7 +26,7 @@ RUN ln -s /data/nginxconf/dist/limits.conf /etc/nginx/limits.conf
 RUN ln -s /data/nginxconf/dist/sites-enabled /etc/nginx/sites-enabled
 RUN ln -s /data/nginxconf/dist/includes /etc/nginx/includes
 RUN ln -s /data/nginxconf/dist/customerrorpage /usr/share/nginx/html/customerrorpage
-RUN ln -s /data/nginx/dist/security_headers.conf /etc/nginx/security_headers.conf
+RUN ln -s /data/nginxconf/dist/security_headers.conf /etc/nginx/security_headers.conf
 
 RUN chown -Rf nginx:nginx /data/nginxconf/dist
 
