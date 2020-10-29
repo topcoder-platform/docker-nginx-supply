@@ -70,7 +70,7 @@ workflows:
           context : org-global      
           filters:
             branches:
-              only: [dev, dev-circleci, dev-sts]
+              only: [dev, dev-circleci, 'feature/auth0-RS256']
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
