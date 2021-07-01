@@ -70,7 +70,7 @@ workflows:
           context : org-global      
           filters:
             branches:
-              only: [dev, dev-circleci, 'payment-url']
+              only: [dev, 'shapeup3']
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
