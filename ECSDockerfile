@@ -1,10 +1,10 @@
-FROM ubuntu:xenial
+FROM ubuntu:impish
 
 LABEL app="nginx-supply" version="1.0"
 
 RUN apt update
-RUN apt-get install software-properties-common -y
-RUN add-apt-repository ppa:mtwomey/nginx-topcoder-aws -y
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC  apt-get install software-properties-common -y
+RUN add-apt-repository ppa:gunak-topcoder/ppatestingv1 -y
 RUN apt-get update
 RUN apt install nginx-topcoder-full -y
 RUN adduser --system --no-create-home --group nginx
