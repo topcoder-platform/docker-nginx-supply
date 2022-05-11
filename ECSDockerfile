@@ -1,10 +1,10 @@
-FROM ubuntu:impish
+FROM ubuntu:focal
 
 LABEL app="nginx-supply" version="1.0"
 
 RUN apt update
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC  apt-get install software-properties-common -y
-RUN add-apt-repository ppa:gunak-topcoder/ppatestingv1 -y
+RUN add-apt-repository ppa:gunak-topcoder/ppafocaltesting -y
 RUN apt-get update
 RUN apt install nginx-topcoder-full -y
 RUN adduser --system --no-create-home --group nginx
