@@ -32,6 +32,11 @@ rm -rf dist
 mkdir -p dist/sites-enabled
 mkdir -p dist/includes
 
+if [[ "$ENV" == dev ]]; then
+	echo "" >> src/security_headers.conf
+	echo "add_header 'X-Robots-Tag' noindex always;" >> src/security_headers.conf
+fi
+
 cp src/sites-enabled/*conf dist/sites-enabled/
 cp src/includes/*conf dist/includes/
 cp src/*conf dist/
