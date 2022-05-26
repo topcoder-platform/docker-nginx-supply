@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:xenial-20210416
 
 LABEL app="nginx-supply" version="1.0"
 
