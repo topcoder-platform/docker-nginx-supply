@@ -70,7 +70,7 @@ workflows:
           context : org-global      
           filters:
             branches:
-              only: [dev, 'feature/plat-jira-416']
+              only: [dev, 'dev-nginx118']
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
