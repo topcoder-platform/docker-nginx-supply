@@ -37,6 +37,11 @@ if [[ "$ENV" == dev ]]; then
 	echo "add_header 'X-Robots-Tag' noindex always;" >> src/security_headers.conf
 fi
 
+if [[ "$ENV" == qa ]]; then
+	echo "" >> src/security_headers.conf
+	echo "add_header 'X-Robots-Tag' noindex always;" >> src/security_headers.conf
+fi
+
 cp src/sites-enabled/*conf dist/sites-enabled/
 cp src/includes/*conf dist/includes/
 cp src/*conf dist/

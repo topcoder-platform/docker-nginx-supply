@@ -44,7 +44,13 @@ jobs:
       DEPLOY_ENV: "DEV" 
       LOGICAL_ENV: "dev"
     steps: *build_steps 
-          
+  # Build & Deploy against development backend
+  "build-qa":
+    <<: *defaults
+    environment:
+      DEPLOY_ENV: "QA" 
+      LOGICAL_ENV: "qa"
+    steps: *build_steps           
   # Build & Deploy against production backend
   "build-prod":
     <<: *defaults
