@@ -24,16 +24,25 @@ build_steps: &build_steps
       - setup_remote_docker 
       - run: *install_dependency     
       - run: *install_deploysuite
+      - run:
+          name: "AWS Configuration"
+          command: |
+            ./awsconfiguration.sh ${DEPLOY_ENV}
+            source awsenvconf      
       # Build of Docker image.     
       - run:
           name: Build of Docker image
-          command: ./buildimage.sh ${DEPLOY_ENV}
+          command: |
+            source awsenvconf
+            ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-buildvar
+            source buildenvvar            
+            ./buildimage.sh ${DEPLOY_ENV}
       # Deployment.
       - deploy:
           name: Deploy to AWS
           command: |                  
             #aws --version && ./deploy.sh ${DEPLOY_ENV} $CIRCLE_SHA1
-            ./awsconfiguration.sh ${DEPLOY_ENV}
+            #./awsconfiguration.sh ${DEPLOY_ENV}
             source awsenvconf
             ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-deployvar
             source buildenvvar
