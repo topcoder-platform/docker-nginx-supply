@@ -68,6 +68,10 @@ perl -pi -e "s/\{\{ENV_LOGIN_SUBDOMAIN_PREFIX\}\}/accounts-auth0/g" dist/sites-e
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/includes/*conf
 
+if [[ "$ENV" == dev ]]; then
+	perl -pi -e "s/\{\{ENV_NETLIFY\}\}/$ENV_NETLIFY/g" dist/includes/*conf
+fi
+
 #/root/init_logentries.sh (need to look in image)
 
 if [[ "$PROVIDER" == local ]]; then
