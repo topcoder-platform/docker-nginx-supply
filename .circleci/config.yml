@@ -83,7 +83,7 @@ workflows:
           context : org-global      
           filters:
             branches:
-              only: [dev, 'dev-nginx118', 'CORE-341-fix']
+              only: [dev, 'dev-nginx118', 'CORE-799-fix']
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
