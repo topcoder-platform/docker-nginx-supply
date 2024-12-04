@@ -37,7 +37,12 @@ build_steps: &build_steps
             if [[ "$DEPLOY_ENV" == DEV ]]; then
               ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-buildvar
               source buildenvvar    
-            fi        
+            fi  
+            source awsenvconf
+            if [[ "$DEPLOY_ENV" == PROD ]]; then
+              ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-buildvar
+              source buildenvvar    
+            fi                     
             ./buildimage.sh ${DEPLOY_ENV}
       # Deployment.
       - deploy:
