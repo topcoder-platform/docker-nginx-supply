@@ -2,22 +2,23 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: cimg/python:3.11.7-browsers
+    - image: cimg/python:3.13.2-browsers
 install_dependency: &install_dependency
   name: Installation of build and deployment dependencies.
   command: |
     sudo apt update
-    sudo apt install jq
-    sudo apt install python3-pip
+    sudo apt install -y jq python3-pip
     sudo pip3 install awscli --upgrade
-    sudo pip3 install docker==6.1.3
+
 install_deploysuite: &install_deploysuite
   name: Installation of install_deploysuite.
   command: |
-    git clone --branch v1.4.18 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
+    git clone --branch v.1.4.18 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
     cp ./../buildscript/master_deploy.sh .
     cp ./../buildscript/buildenv.sh .
     cp ./../buildscript/awsconfiguration.sh . 
+    cp ../buildscript/psvar-processor.sh .
+    
 build_steps: &build_steps
       # Initialization1.
       - checkout
@@ -34,15 +35,10 @@ build_steps: &build_steps
           name: Build of Docker image
           command: |
             source awsenvconf
-            if [[ "$DEPLOY_ENV" == DEV ]]; then
-              ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-buildvar
-              source buildenvvar    
-            fi  
-            source awsenvconf
-            if [[ "$DEPLOY_ENV" == PROD ]]; then
-              ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-buildvar
-              source buildenvvar    
-            fi                     
+            # ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-buildvar
+            # source buildenvvar     
+            ./psvar-processor.sh -t appenv -p /config/${APPNAME}/buildvar
+            source buildvar_env                 
             ./buildimage.sh ${DEPLOY_ENV}
       # Deployment.
       - deploy:
@@ -51,9 +47,12 @@ build_steps: &build_steps
             #aws --version && ./deploy.sh ${DEPLOY_ENV} $CIRCLE_SHA1
             #./awsconfiguration.sh ${DEPLOY_ENV}
             source awsenvconf
-            ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-deployvar
-            source buildenvvar
-            ./master_deploy.sh -d ECS -e ${DEPLOY_ENV} -t latest -s ${LOGICAL_ENV}-docker-nginx-supply-appvar -i nginx-supply -p FARGATE
+            # ./buildenv.sh -e ${DEPLOY_ENV} -b ${LOGICAL_ENV}-docker-nginx-supply-deployvar
+            # source buildenvvar
+            # ./master_deploy.sh -d ECS -e ${DEPLOY_ENV} -t latest -s ${LOGICAL_ENV}-docker-nginx-supply-appvar -i nginx-supply -p FARGATE
+            ./psvar-processor.sh -t appenv -p /config/${APPNAME}/deployvar
+            source deployvar_env
+            ./master_deploy.sh -d ECS -e $DEPLOY_ENV -t latest -j /config/${APPNAME}/appvar -i nginx-api -p FARGATE            
 jobs:
   # Build & Deploy against development backend
   "build-dev":
@@ -61,6 +60,7 @@ jobs:
     environment:
       DEPLOY_ENV: "DEV" 
       LOGICAL_ENV: "dev"
+      APPNAME: "docker-nginx-supply"
     steps: *build_steps 
           
   # Build & Deploy against production backend
@@ -68,7 +68,8 @@ jobs:
     <<: *defaults
     environment:
       DEPLOY_ENV: "PROD"
-      LOGICAL_ENV: "prod"      
+      LOGICAL_ENV: "prod" 
+      APPNAME: "docker-nginx-supply"     
     steps: *build_steps   
 
   # Build & Deploy against QA backend
@@ -76,7 +77,8 @@ jobs:
     <<: *defaults
     environment:
       DEPLOY_ENV: "QA"
-      LOGICAL_ENV: "qa"    
+      LOGICAL_ENV: "qa" 
+      APPNAME: "docker-nginx-supply"   
     steps: *build_steps   
           
 workflows:
