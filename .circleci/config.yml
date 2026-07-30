@@ -90,7 +90,7 @@ workflows:
           context : org-global      
           filters:
             branches:
-              only: [dev, 'dev-nginx118', 'CORE-799-fix-v1']
+              only: [dev, 'dev-nginx118', 'CORE-799-fix-v1' , 'hotfix/update-for-netlify-domain']
 
       # Production builds are exectuted only on tagged commits to the
       # master branch.
