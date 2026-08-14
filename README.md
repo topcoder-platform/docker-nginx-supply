@@ -21,6 +21,13 @@ to this hostname directly while sending `platform-ui.<environment-domain>` as
 the TLS server name and HTTP host. This is required because private Topcoder
 DNS maps the Platform UI alias back to the root load balancer.
 
+Set `ENV_PLATFORM_UI_RESOLVER` to the AmazonProvidedDNS IPv4 address for the
+nginx task VPC (the primary VPC CIDR base plus two; for example, `10.15.0.2` in
+development). The Platform UI proxy uses this scoped resolver because the
+legacy global nginx resolvers are not reachable from the Fargate network. Both
+variables are validated during the build so a missing or malformed deployment
+configuration fails before an image is published.
+
 The public load balancer must forward `/opportunities` and
 `/opportunities/*` to the Supply nginx target group rather than redirect to
 the Platform UI hostname.

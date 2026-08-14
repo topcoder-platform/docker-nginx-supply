@@ -11,8 +11,19 @@ if [[ -z "$ENV_PLATFORM_UI_ORIGIN" && "$PROVIDER" == local ]]; then
 	ENV_PLATFORM_UI_ORIGIN="platform-ui.topcoder-dev.com"
 fi
 
+if [[ -z "$ENV_PLATFORM_UI_RESOLVER" && "$PROVIDER" == local ]]; then
+	ENV_PLATFORM_UI_RESOLVER="8.8.8.8"
+fi
+
 if [[ ! "$ENV_PLATFORM_UI_ORIGIN" =~ ^[A-Za-z0-9.-]+$ ]]; then
 	echo "ENV_PLATFORM_UI_ORIGIN must be a DNS hostname"
+	exit 1
+fi
+
+if [[ ! "$ENV_PLATFORM_UI_RESOLVER" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] ||
+	! awk -v ip="$ENV_PLATFORM_UI_RESOLVER" 'BEGIN { count = split(ip, octets, "."); if (count != 4) exit 1; for (i = 1; i <= 4; i++) if (octets[i] < 0 || octets[i] > 255) exit 1 }'
+then
+	echo "ENV_PLATFORM_UI_RESOLVER must be an IPv4 address"
 	exit 1
 fi
 
@@ -78,6 +89,7 @@ perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/includes/*conf
 perl -pi -e "s/\{\{ENV_NETLIFY\}\}/$ENV_NETLIFY/g" dist/includes/*conf
 perl -pi -e "s/\{\{ENV_PLATFORM_UI_ORIGIN\}\}/$ENV_PLATFORM_UI_ORIGIN/g" dist/includes/*conf
+perl -pi -e "s/\{\{ENV_PLATFORM_UI_RESOLVER\}\}/$ENV_PLATFORM_UI_RESOLVER/g" dist/includes/*conf
 
 
 #/root/init_logentries.sh (need to look in image)
