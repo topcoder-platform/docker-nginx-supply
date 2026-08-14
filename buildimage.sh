@@ -4,7 +4,16 @@ PROVIDER=$2
 if [[ -z "$ENV" ]] ; then
 	echo "Environment should be set on startup with one of the below values"
 	echo "ENV must be one of - DEV, QA, PROD or LOCAL"
-	exit
+	exit 1
+fi
+
+if [[ -z "$ENV_PLATFORM_UI_ORIGIN" && "$PROVIDER" == local ]]; then
+	ENV_PLATFORM_UI_ORIGIN="platform-ui.topcoder-dev.com"
+fi
+
+if [[ ! "$ENV_PLATFORM_UI_ORIGIN" =~ ^[A-Za-z0-9.-]+$ ]]; then
+	echo "ENV_PLATFORM_UI_ORIGIN must be a DNS hostname"
+	exit 1
 fi
 
 echo "$ENV before case conversion"
@@ -68,6 +77,7 @@ perl -pi -e "s/\{\{ENV_LOGIN_SUBDOMAIN_PREFIX\}\}/accounts-auth0/g" dist/sites-e
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/includes/*conf
 perl -pi -e "s/\{\{ENV_NETLIFY\}\}/$ENV_NETLIFY/g" dist/includes/*conf
+perl -pi -e "s/\{\{ENV_PLATFORM_UI_ORIGIN\}\}/$ENV_PLATFORM_UI_ORIGIN/g" dist/includes/*conf
 
 
 #/root/init_logentries.sh (need to look in image)
