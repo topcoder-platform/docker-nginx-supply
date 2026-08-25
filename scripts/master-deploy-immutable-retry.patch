@@ -1,0 +1,15 @@
+diff --git a/master_deploy.sh b/master_deploy.sh
+index 1c56e91..7917f11 100755
+--- a/master_deploy.sh
++++ b/master_deploy.sh
+@@ -135,5 +135,10 @@ configure_docker_private_login() {
+ ECS_push_ecr_image() {
+     echo "\n\n"
++    if [ "${ECS_SKIP_ECR_PUSH:-false}" = "true" ];
++    then
++        log "Approved immutable ECR tag already contains the exact image; skipping push"
++        return 0
++    fi
+     if [ -z "$APP_IMAGE_NAME" ];
+     then
+         log "ECS image follows the standard format"

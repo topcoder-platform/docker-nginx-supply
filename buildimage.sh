@@ -1,11 +1,44 @@
-#!/bin/bash
-ENV=$1
-PROVIDER=$2
-if [[ -z "$ENV" ]] ; then
-	echo "Environment should be set on startup with one of the below values"
-	echo "ENV must be one of - DEV, QA, PROD or LOCAL"
-	exit
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENV="${1:-}"
+PROVIDER="${2:-}"
+
+case "${ENV}" in
+	DEV | QA | PROD | LOCAL) ;;
+	*)
+		echo "ENV must be one of - DEV, QA, PROD or LOCAL" >&2
+		exit 1
+		;;
+esac
+if [[ -n "${PROVIDER}" && "${PROVIDER}" != local ]]; then
+	echo "The optional provider must be local." >&2
+	exit 1
 fi
+
+ENV_PLATFORM_UI_RESOLVER="${ENV_PLATFORM_UI_RESOLVER:-}"
+if [[ -z "${ENV_PLATFORM_UI_RESOLVER}" && "${PROVIDER}" == local ]]; then
+	ENV_PLATFORM_UI_RESOLVER="8.8.8.8"
+fi
+
+if [[ ! "$ENV_PLATFORM_UI_RESOLVER" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] ||
+	! awk -v ip="$ENV_PLATFORM_UI_RESOLVER" 'BEGIN { count = split(ip, octets, "."); if (count != 4) exit 1; for (i = 1; i <= 4; i++) if (octets[i] < 0 || octets[i] > 255) exit 1 }'
+then
+	echo "ENV_PLATFORM_UI_RESOLVER must be an IPv4 address"
+	exit 1
+fi
+
+./scripts/test-production-approval.py
+./scripts/test-load-ssm-environment.sh
+./scripts/test-versioned-ssm-environment.sh
+./scripts/test-configure-nonproduction-aws.sh
+./scripts/test-production-authority-gates.sh
+./scripts/test-configure-production-snapshot-aws.sh
+./scripts/test-production-snapshot-session-policy.sh
+./scripts/test-efs-mapping.sh
+./scripts/test-task-definition-contract.py
+./scripts/test-community-app-cdn-route.sh
+./scripts/test-retired-provider-routes.sh
 
 echo "$ENV before case conversion"
 # AWS_REGION=$(eval "echo \$${ENV}_AWS_REGION")
@@ -16,8 +49,13 @@ echo "$ENV before case conversion"
 #APP_NAME
 
 #Converting environment varibale as lower case for build purpose
-ENV=`echo "$ENV" | tr '[:upper:]' '[:lower:]'`
+ENV="$(printf '%s' "${ENV}" | tr '[:upper:]' '[:lower:]')"
 echo "$ENV after case conversion"
+if [[ "${ENV}" == prod ]]; then
+	readonly runtime_www_host='www.topcoder.com'
+else
+	readonly runtime_www_host="www.topcoder-${ENV}.com"
+fi
 
 # configure_aws_cli() {
 # 	aws --version
@@ -32,15 +70,15 @@ rm -rf dist
 mkdir -p dist/sites-enabled
 mkdir -p dist/includes
 
-if [[ "$ENV" == dev ]]; then
-	echo "" >> src/security_headers.conf
-	echo "add_header 'X-Robots-Tag' noindex always;" >> src/security_headers.conf
-fi
-
 cp src/sites-enabled/*conf dist/sites-enabled/
 cp src/includes/*conf dist/includes/
 cp src/*conf dist/
 cp -rvf src/customerrorpage dist/
+
+if [[ "$ENV" == dev ]]; then
+	echo "" >> dist/security_headers.conf
+	echo "add_header 'X-Robots-Tag' noindex always;" >> dist/security_headers.conf
+fi
 
 if [[ "$ENV" == dev ]]; then
 	cp -rf src/dev/* dist/
@@ -67,7 +105,10 @@ fi
 perl -pi -e "s/\{\{ENV_LOGIN_SUBDOMAIN_PREFIX\}\}/accounts-auth0/g" dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/includes/*conf
-perl -pi -e "s/\{\{ENV_NETLIFY\}\}/$ENV_NETLIFY/g" dist/includes/*conf
+perl -pi -e "s/\{\{ENV_PLATFORM_UI_RESOLVER\}\}/$ENV_PLATFORM_UI_RESOLVER/g" dist/includes/*conf
+
+./scripts/test-community-app-cdn-route.sh "${PWD}/dist" "$ENV_PLATFORM_UI_RESOLVER"
+./scripts/verify-no-retired-provider-routes.py dist
 
 
 #/root/init_logentries.sh (need to look in image)
@@ -81,5 +122,8 @@ else
 	# Builds Docker image of the app.
 	# TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_REPOSITORY:$CIRCLE_SHA1
 	TAG=nginx-supply:latest
-	docker build -f ECSDockerfile -t $TAG .
+	SOURCE_COMMIT="${CIRCLE_SHA1:-local}"
+	docker build --provenance=false --build-arg "SOURCE_COMMIT=${SOURCE_COMMIT}" -f ECSDockerfile -t "$TAG" .
+	./scripts/test-runtime.sh "$TAG" "$runtime_www_host"
+	./scripts/verify-provider-off-image.sh "$TAG" "$SOURCE_COMMIT"
 fi

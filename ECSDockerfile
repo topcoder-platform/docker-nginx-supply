@@ -1,17 +1,16 @@
-FROM ubuntu:focal
+FROM ubuntu:focal@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214
 
-LABEL app="nginx-supply" version="1.0"
-
-RUN apt update
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC  apt-get install software-properties-common -y
-RUN add-apt-repository ppa:topcoder/ppa-topcoder-nginx -y
-RUN apt-get update
-RUN apt install nginx-topcoder-full -y
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get upgrade -y \
+    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y software-properties-common \
+    && add-apt-repository ppa:topcoder/ppa-topcoder-nginx -y \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y nginx-topcoder-full=1.18.0-1Topcoder1 \
+    && rm -rf /var/lib/apt/lists/*
 RUN adduser --system --no-create-home --group nginx
 
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
-RUN mkdir -p /usr/local/nginx/cache && chown -Rf nginx:nginx /usr/local/nginx
-RUN mkdir -p /var/log/nginx/logs && chown -Rf nginx:nginx /var/log/nginx
+RUN ln -s /dev/stderr /var/log/nginx/error.log
 RUN mkdir -p /data/nginxconf
 RUN mkdir -p /home/apps/nginx/app
 RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf nginx:nginx /usr/share/nginx/html/customerrorpage
@@ -19,7 +18,6 @@ RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf nginx:nginx /usr
 COPY dist /data/nginxconf/dist
 COPY rund /data/nginxconf/
 COPY healthcheck.html /home/apps/nginx/app/healthcheck.html
-COPY scripts /data/nginxconf/scripts
 
 RUN ln -s /data/nginxconf/dist/nginx.conf /etc/nginx/nginx.conf
 RUN ln -s /data/nginxconf/dist/limits.conf /etc/nginx/limits.conf
@@ -32,5 +30,10 @@ RUN chown -Rf nginx:nginx /data/nginxconf/dist
 
 WORKDIR /data/nginxconf
 
-CMD ./rund
+ARG SOURCE_COMMIT=local
 
+LABEL app="nginx-supply" \
+      version="1.0" \
+      org.opencontainers.image.revision="${SOURCE_COMMIT}"
+
+CMD ["./rund"]

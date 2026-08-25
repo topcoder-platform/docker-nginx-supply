@@ -1,11 +1,22 @@
-#!/bin/bash -x
+#!/usr/bin/env bash
+set -euo pipefail
 
-crontab /data/nginxconf/scripts/root.cron
-/usr/sbin/cron
-
-if [[ "$PROVIDER" == local ]]; then
-	echo "8.8.8.8 dns01.topcoder.com" >> /etc/hosts
+if [[ "${PROVIDER:-}" == local ]]; then
+	printf '%s\n' '8.8.8.8 dns01.topcoder.com' >> /etc/hosts
 fi
 
-#nginx -t && nginx  && tail -f /var/log/nginx/logs/error.log -f /var/log/nginx/logs/access.log
-nginx -t && nginx
+for runtime_directory in \
+	/tmp/nginx \
+	/tmp/nginx/cache \
+	/tmp/nginx/client-body \
+	/tmp/nginx/fastcgi \
+	/tmp/nginx/proxy \
+	/tmp/nginx/scgi \
+	/tmp/nginx/uwsgi
+do
+	install --directory --mode=0750 --owner=nginx --group=nginx \
+		"${runtime_directory}"
+done
+
+nginx -t
+exec nginx
