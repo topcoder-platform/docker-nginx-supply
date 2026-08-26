@@ -2,18 +2,18 @@
 
 Docker image for testing and deployment of the Supply nginx pipeline.
 
-## Platform UI Opportunities proxy
+## Platform UI proxy
 
-Requests to `/opportunities` and its child routes on the apex Topcoder host are
-reverse-proxied to the matching Platform UI hostname. The browser URL
-therefore remains on the public Topcoder host. Requests on the `www` hostname
-are canonicalized to the apex host.
+Requests to `/opportunities`, `/thrive`, and their child routes on the apex
+Topcoder host are reverse-proxied to the matching Platform UI hostname. The
+browser URL therefore remains on the public Topcoder host. Requests on the
+`www` hostname are canonicalized to the apex host at the public edge.
 
 Platform UI currently publishes root-relative asset URLs. On the apex server,
 the `/static/` tree and exact public files referenced by its HTML are therefore
 proxied to Platform UI as well. The `www` server keeps its existing legacy
-asset routes; this is why its Opportunities URL is canonicalized instead of
-being served in place.
+asset routes; this is why Platform UI URLs are canonicalized instead of being
+served in place.
 
 Set `ENV_PLATFORM_UI_ORIGIN` in the nginx build variables to the environment's
 CloudFront distribution hostname, without a scheme or path. The proxy connects
@@ -28,9 +28,9 @@ legacy global nginx resolvers are not reachable from the Fargate network. Both
 variables are validated during the build so a missing or malformed deployment
 configuration fails before an image is published.
 
-The public load balancer must forward `/opportunities` and
-`/opportunities/*` to the Supply nginx target group rather than redirect to
-the Platform UI hostname.
+The public load balancer must forward `/opportunities`, `/opportunities/*`,
+`/thrive`, and `/thrive/*` to the Supply nginx target group rather than
+redirect to the Platform UI hostname.
 
 To build the docker image:
 
