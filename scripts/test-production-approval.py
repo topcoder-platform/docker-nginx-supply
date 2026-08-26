@@ -24,6 +24,7 @@ if len(sys.argv) > 2:
     raise SystemExit("Usage: test-production-approval.py [circleci-config]")
 
 DOCKERFILE_PATH = REPOSITORY_ROOT / "ECSDockerfile"
+NGINX_SOURCE_ROOT = REPOSITORY_ROOT / "src"
 BUILD_SCRIPT_PATH = REPOSITORY_ROOT / "buildimage.sh"
 BUILD_AWS_SCRIPT_PATH = REPOSITORY_ROOT / "scripts" / "configure-production-build-aws.sh"
 DEPLOY_AWS_SCRIPT_PATH = REPOSITORY_ROOT / "scripts" / "configure-production-deploy-aws.sh"
@@ -1088,17 +1089,49 @@ for retired_origin_path in (
         fail(f"Retired origin support remains in provider-off tree: {retired_origin_path}")
 
 dockerfile_text = DOCKERFILE_PATH.read_text(encoding="utf-8")
+nginx_source_text = "\n".join(
+    path.read_text(encoding="utf-8")
+    for path in sorted(NGINX_SOURCE_ROOT.rglob("*"))
+    if path.is_file()
+)
 build_script_text = BUILD_SCRIPT_PATH.read_text(encoding="utf-8")
 require_markers(
     dockerfile_text,
     (
-        "FROM ubuntu:focal@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214",
+        "FROM ubuntu:noble@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517",
+        "apt-get install -y --no-install-recommends \\\n"
+        "        ca-certificates \\\n"
+        "        nginx \\\n"
+        "    && rm -rf /var/lib/apt/lists/*",
+        "chown -Rf www-data:www-data",
         "ARG SOURCE_COMMIT=local",
         'org.opencontainers.image.revision="${SOURCE_COMMIT}"',
-        "nginx-topcoder-full=1.18.0-1Topcoder1",
         'CMD ["./rund"]',
     ),
     "Production image",
+)
+if dockerfile_text.count("apt-get install") != 1:
+    fail("Production image must have exactly one runtime-only package install.")
+for forbidden_build_dependency in (
+    "apt-get upgrade",
+    "software-properties-common",
+    "add-apt-repository",
+    "ppa:topcoder",
+    "nginx-topcoder",
+    "adduser",
+):
+    if forbidden_build_dependency in dockerfile_text:
+        fail(
+            "Production image must use only the supported Ubuntu nginx runtime: "
+            f"{forbidden_build_dependency}"
+        )
+for forbidden_ajp_directive in ("ajp_pass", "ajp_header_packet_buffer_size"):
+    if re.search(rf"\b{re.escape(forbidden_ajp_directive)}\b", nginx_source_text):
+        fail(f"Unused custom AJP configuration remains: {forbidden_ajp_directive}")
+require_markers(
+    nginx_source_text,
+    ("user www-data;",),
+    "Ubuntu nginx worker identity",
 )
 if "COPY scripts /data/nginxconf/scripts" in dockerfile_text:
     fail("Production image must not contain CI, deployment, or test scripts.")
@@ -1171,6 +1204,7 @@ require_markers(
         "set -euo pipefail",
         '${PROVIDER:-}',
         "/tmp/nginx/cache",
+        "--owner=www-data --group=www-data",
         "nginx -t",
         "exec nginx",
     ),

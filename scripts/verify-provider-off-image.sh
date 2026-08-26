@@ -67,12 +67,10 @@ jq -e --arg expected_source_sha "${expected_source_sha}" '
   (.Env | (type == "array" and length == 1 and (.[0] | startswith("PATH=")))) and
   .Labels.app == "nginx-supply" and
   .Labels.version == "1.0" and
-  .Labels["org.opencontainers.image.ref.name"] == "ubuntu" and
-  .Labels["org.opencontainers.image.version"] == "20.04" and
+  .Labels["org.opencontainers.image.version"] == "24.04" and
   .Labels["org.opencontainers.image.revision"] == $expected_source_sha and
   (.Labels | keys | sort) == [
     "app",
-    "org.opencontainers.image.ref.name",
     "org.opencontainers.image.revision",
     "org.opencontainers.image.version",
     "version"

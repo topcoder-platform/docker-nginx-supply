@@ -1,19 +1,16 @@
-FROM ubuntu:focal@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214
+FROM ubuntu:noble@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
 
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get upgrade -y \
-    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y software-properties-common \
-    && add-apt-repository ppa:topcoder/ppa-topcoder-nginx -y \
-    && apt-get update \
-    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y nginx-topcoder-full=1.18.0-1Topcoder1 \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        nginx \
     && rm -rf /var/lib/apt/lists/*
-RUN adduser --system --no-create-home --group nginx
 
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
 RUN ln -s /dev/stderr /var/log/nginx/error.log
 RUN mkdir -p /data/nginxconf
 RUN mkdir -p /home/apps/nginx/app
-RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf nginx:nginx /usr/share/nginx/html/customerrorpage
+RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf www-data:www-data /usr/share/nginx/html/customerrorpage
 
 COPY dist /data/nginxconf/dist
 COPY rund /data/nginxconf/
@@ -26,7 +23,7 @@ RUN ln -s /data/nginxconf/dist/includes /etc/nginx/includes
 RUN ln -s /data/nginxconf/dist/customerrorpage /usr/share/nginx/html/customerrorpage
 RUN ln -s /data/nginxconf/dist/security_headers.conf /etc/nginx/security_headers.conf
 
-RUN chown -Rf nginx:nginx /data/nginxconf/dist
+RUN chown -Rf www-data:www-data /data/nginxconf/dist
 
 WORKDIR /data/nginxconf
 

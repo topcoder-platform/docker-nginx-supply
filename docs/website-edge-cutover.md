@@ -155,11 +155,11 @@ exists independently of context contents.
 - Permit deploy-variable `ssm:GetParameters` only for the 12 names the job loads: the eight
   required repository/cluster/service/family/container/ports/read-only-root/EFS values and
   the four optional CPU/memory values. For this release,
-  `AWS_ECS_READONLY_ROOTFILESYSTEM` must be exactly `false`: the legacy nginx package and
-  entrypoint require writable runtime paths, and the pinned deploy helper otherwise defaults
-  the task definition to read-only. The job verifies the deployed container definition is
-  also `false`. Treat this as a reviewed temporary constraint, not a claim that read-only
-  operation has been achieved. `AWS_ECS_VOLUMES`, `AWS_ECS_CONTAINER_HEALTH_CMD`, and
+  `AWS_ECS_READONLY_ROOTFILESYSTEM` must be exactly `false`: the nginx runtime entrypoint
+  requires writable `/tmp` paths, and the pinned deploy helper otherwise defaults the task
+  definition to read-only. The job verifies the deployed container definition is also
+  `false`. Treat this as a reviewed temporary constraint, not a claim that read-only operation
+  has been achieved. `AWS_ECS_VOLUMES`, `AWS_ECS_CONTAINER_HEALTH_CMD`, and
   `AWS_ECS_CONTAINER_CMD` are not approved inputs and must be absent from SSM and the job
   environment. The job exports exact empty values for those fields only for compatibility
   with the pinned helper. `AWS_ECS_VOLUMES_EFS` is instead a required compatibility input:
@@ -250,18 +250,20 @@ in this legacy configuration remain start/reload-bound; accept and monitor that 
 this cutover, then either convert those upstreams or add a supported reload mechanism in a
 separately reviewed change. The removed cron helper was not installed or running in the image.
 
-Production is also blocked until the image-base decision is closed. The current candidate
-pins an Ubuntu Focal digest even though Focal standard security maintenance has ended, and
-the custom `nginx-topcoder-full=1.18.0-1Topcoder1` package has no demonstrated supported-base
-or ESM update path in this repository. The Dockerfile installs all updates still published
-by the public Focal archive (the local rehearsal had zero public upgrades pending), but
-that is not future security coverage. Before the release, migrate and rebuild on a
-supported compatible base (preferred), including rebuilding the Topcoder nginx package, or
-use a formally maintained third-party package with its own documented patch SLA. Ubuntu
-Pro/ESM coverage for the base alone does not cover the PPA package. Then run an authenticated
-registry vulnerability scan and resolve all release-policy findings. The base digest pins
-the starting layer and the recorded artifact identities bind the built output; mutable
-APT/PPA resolution means it does not make a future rebuild reproducible.
+The supported-base decision is closed in this candidate. The production Dockerfile pins the
+reviewed official Ubuntu Noble manifest digest
+`sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517` and installs
+only Ubuntu's `nginx` and `ca-certificates` runtime packages with recommendations disabled.
+It no longer performs a blanket package upgrade, adds the Topcoder PPA, or installs the
+custom `nginx-topcoder-full` package, and it uses Ubuntu's existing `www-data` worker
+identity. The only custom-AJP configuration was the global
+`ajp_header_packet_buffer_size`; no `ajp_pass` route existed, so that unused directive was
+removed with the module. Source regression checks keep both directives absent, while the
+full rendered-config and PID-1 HTTP tests prove the stock nginx package accepts and serves
+the provider-off configuration. The release still requires an authenticated registry
+vulnerability scan and resolution of all release-policy findings. The base digest pins the
+starting layer and the recorded artifact identities bind the built output; mutable Ubuntu
+APT resolution means it does not make a future rebuild reproducible.
 
 Dev and QA must also stop using generated SSM shell files and the shared legacy parameter
 namespace. Their jobs now use the same non-evaluating exact-name loader as production and
