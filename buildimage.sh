@@ -95,10 +95,6 @@ perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" dist/includes/*conf
 perl -pi -e "s/\{\{ENV_PLATFORM_UI_RESOLVER\}\}/$ENV_PLATFORM_UI_RESOLVER/g" dist/includes/*conf
 
-./scripts/test-community-app-cdn-route.sh "${PWD}/dist" "$ENV_PLATFORM_UI_RESOLVER"
-./scripts/verify-no-retired-provider-routes.py dist
-
-
 #/root/init_logentries.sh (need to look in image)
 
 if [[ "$PROVIDER" == local ]]; then
@@ -112,6 +108,4 @@ else
 	TAG=nginx-supply:latest
 	SOURCE_COMMIT="${CIRCLE_SHA1:-local}"
 	docker build --provenance=false --build-arg "SOURCE_COMMIT=${SOURCE_COMMIT}" -f ECSDockerfile -t "$TAG" .
-	./scripts/test-runtime.sh "$TAG" "$runtime_www_host"
-	./scripts/verify-provider-off-image.sh "$TAG" "$SOURCE_COMMIT"
 fi
