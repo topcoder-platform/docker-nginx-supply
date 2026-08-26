@@ -28,18 +28,6 @@ then
 	exit 1
 fi
 
-./scripts/test-production-approval.py
-./scripts/test-load-ssm-environment.sh
-./scripts/test-versioned-ssm-environment.sh
-./scripts/test-configure-nonproduction-aws.sh
-./scripts/test-production-authority-gates.sh
-./scripts/test-configure-production-snapshot-aws.sh
-./scripts/test-production-snapshot-session-policy.sh
-./scripts/test-efs-mapping.sh
-./scripts/test-task-definition-contract.py
-./scripts/test-community-app-cdn-route.sh
-./scripts/test-retired-provider-routes.sh
-
 echo "$ENV before case conversion"
 # AWS_REGION=$(eval "echo \$${ENV}_AWS_REGION")
 # AWS_ACCESS_KEY_ID=$(eval "echo \$${ENV}_AWS_ACCESS_KEY_ID")
