@@ -98,7 +98,7 @@ workflows:
           context : org-global      
           filters:
             branches:
-              only: master 
+              only: [master, 'contentful_hotfix'] 
 
       # Development builds are executed on "qa" branch only.
       - "build-qa":
