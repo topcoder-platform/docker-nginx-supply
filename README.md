@@ -32,6 +32,15 @@ The public load balancer must forward `/opportunities`, `/opportunities/*`,
 `/thrive`, and `/thrive/*` to the Supply nginx target group rather than
 redirect to the Platform UI hostname.
 
+## TopGear proxy
+
+Requests to `topgear.<environment-domain>` are reverse-proxied over HTTPS to
+`wipro.<environment-domain>`, keeping the browser on the TopGear hostname. The
+proxy sends the Wipro hostname as TLS SNI so the network firewall's HTTPS
+domain allowlist can match the upstream connection. Do not switch this upstream
+to HTTP: the Wipro load balancer canonicalizes HTTP to its HTTPS hostname,
+which exposes `wipro.<environment-domain>` in the browser.
+
 To build the docker image:
 
 ```shell
