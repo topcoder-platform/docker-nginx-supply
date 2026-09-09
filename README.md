@@ -2,6 +2,18 @@
 
 Docker image for testing and deployment of the Supply nginx pipeline.
 
+## SendGrid tracking proxies
+
+The `url3623.topcoder.com` and `link.topcoder.com` hosts forward email tracking
+requests to `https://sendgrid.net/`. Both proxies explicitly send `sendgrid.net`
+as TLS Server Name Indication (SNI), which AWS Network Firewall requires to
+match the allowed SendGrid domain. Each proxy also sends its own branded
+hostname in the HTTP `Host` header so SendGrid can resolve the tracking link.
+
+Keep both the upstream SNI name and the branded HTTP host when changing these
+proxies. Without SNI, the firewall blocks the TLS handshake and email links,
+including Auth0 password-reset links, time out before reaching their destination.
+
 ## Platform UI proxy
 
 Requests to `/opportunities`, `/thrive`, and their child routes on the apex
