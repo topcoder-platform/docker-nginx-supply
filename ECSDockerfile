@@ -1,16 +1,15 @@
-FROM ubuntu:noble@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
+# Maintained Alpine nginx packages include the current security fixes.
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        ca-certificates \
-        nginx \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk upgrade --no-cache \
+    && apk add --no-cache ca-certificates nginx bash \
+    && adduser -S -D -H -u 10001 -G www-data www-data
 
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
 RUN ln -s /dev/stderr /var/log/nginx/error.log
 RUN mkdir -p /data/nginxconf
 RUN mkdir -p /home/apps/nginx/app
-RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf www-data:www-data /usr/share/nginx/html/customerrorpage
+RUN mkdir -p /usr/share/nginx/html
 
 COPY dist /data/nginxconf/dist
 COPY rund /data/nginxconf/
