@@ -1,4 +1,9 @@
 #!/bin/bash
+set -euo pipefail
+ENV="${ENV:-}"
+PROVIDER="${PROVIDER:-}"
+ENV_PLATFORM_UI_ORIGIN="${ENV_PLATFORM_UI_ORIGIN:-}"
+ENV_PLATFORM_UI_RESOLVER="${ENV_PLATFORM_UI_RESOLVER:-}"
 
 if [[ -z "$ENV" ]] ; then
 	echo "Environment should be set on startup with one of the below values"
@@ -33,6 +38,7 @@ mkdir -p /data/nginx/dist/includes
 cp /data/nginx/src/sites-enabled/*conf /data/nginx/dist/sites-enabled/
 cp /data/nginx/src/includes/*conf /data/nginx/dist/includes/
 cp /data/nginx/src/*conf /data/nginx/dist/
+cp -r /data/nginx/src/customerrorpage /data/nginx/dist/
 
 if [[ "$ENV" == dev ]]; then
 	cp -rf /data/nginx/src/dev/* /data/nginx/dist/
@@ -50,16 +56,15 @@ fi
 if [[ "$ENV" != prod ]]; then
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/sites-enabled/*conf
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder-$ENV\.com/g" /data/nginx/dist/includes/*conf
-	perl -pi -e "s/\{\{ENV_WWWTC\}\}/www\.topcoder.com\.com/g" /data/nginx/dist/sites-enabled/*conf
+	perl -pi -e "s/\{\{ENV_WWWTC\}\}/www\.topcoder\.com/g" /data/nginx/dist/sites-enabled/*conf
 else
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/dist/sites-enabled/*conf
 	perl -pi -e "s/\{\{ENV_TLD\}\}/topcoder\.com/g" /data/nginx/dist/includes/*conf
 	perl -pi -e "s/\{\{ENV_WWWTC\}\}/www\.topcoder\.com/g" /data/nginx/dist/sites-enabled/*conf
 fi
 
+perl -pi -e "s/\{\{ENV_LOGIN_SUBDOMAIN_PREFIX\}\}/accounts-auth0/g" /data/nginx/dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/sites-enabled/*conf
 perl -pi -e "s/\{\{ENV\}\}/$ENV/g" /data/nginx/dist/includes/*conf
 perl -pi -e "s/\{\{ENV_PLATFORM_UI_ORIGIN\}\}/$ENV_PLATFORM_UI_ORIGIN/g" /data/nginx/dist/includes/*conf
 perl -pi -e "s/\{\{ENV_PLATFORM_UI_RESOLVER\}\}/$ENV_PLATFORM_UI_RESOLVER/g" /data/nginx/dist/includes/*conf
-
-/root/init_logentries.sh

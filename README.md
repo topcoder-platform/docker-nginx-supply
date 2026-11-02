@@ -53,7 +53,23 @@ docker build -t appiriodevops/nginx-supply:latest .
 To run the docker container:
 
 ```shell
-docker build -d -e "ENV=<ENVIRONMENT>" -P 8000:8000 appiriodevops/nginx-supply
+./local
 ```
 
 The build script creates the configurations for dev and builds the docker image. Run runs it.
+
+## Runtime security and validation
+
+Both images use digest-pinned Alpine 3.24 and install maintained nginx packages
+(currently nginx 1.30.6), with distribution security updates applied at build
+time. The ECS image keeps the existing port 8000, foreground master process,
+`www-data` workers, configuration paths, and proxy routing. The custom error
+page directory is linked directly to the generated content. The source-mounted
+local image includes Bash and Perl for configuration generation and uses the
+same foreground startup script; the obsolete Logentries bootstrap is removed.
+
+Generate a deployment image with `ENV_PLATFORM_UI_ORIGIN` and
+`ENV_PLATFORM_UI_RESOLVER` set, then run `./buildimage.sh DEV` (or `QA`/`PROD`).
+Validate `nginx -t`, `/healthcheck.html`, HTTPS redirects, Platform UI forwarding
+and both SendGrid branded hosts before promotion. The proxy's TLS SNI and Host
+headers must retain the behavior documented above.
