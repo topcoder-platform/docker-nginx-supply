@@ -108,15 +108,12 @@ perl -pi -e "s/\{\{ENV_PLATFORM_UI_RESOLVER\}\}/$ENV_PLATFORM_UI_RESOLVER/g" dis
 
 #/root/init_logentries.sh (need to look in image)
 
+if [[ "${3:-}" == --render-only ]]; then
+    exit 0
+fi
 if [[ "$PROVIDER" == local ]]; then
-	docker build --no-cache -t nginx-supply:latest .
+    docker build --no-cache -t nginx-supply:latest .
 else
-	# configure_aws_cli
-	# aws s3 cp "s3://appirio-platform-$ENV/services/common/dockercfg" ~/.dockercfg
-	#eval $(aws ecr get-login --region $AWS_REGION --no-include-email)
-	# Builds Docker image of the app.
-	# TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_REPOSITORY:$CIRCLE_SHA1
-	TAG=nginx-supply:latest
-	SOURCE_COMMIT="${CIRCLE_SHA1:-local}"
-	docker build --provenance=false --build-arg "SOURCE_COMMIT=${SOURCE_COMMIT}" -f ECSDockerfile -t "$TAG" .
+    echo 'Use the credential-free CircleCI build and OIDC deployment workflow.' >&2
+    exit 1
 fi

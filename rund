@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ "${PROVIDER:-}" == local ]]; then
-	printf '%s\n' '8.8.8.8 dns01.topcoder.com' >> /etc/hosts
-fi
 
 for runtime_directory in \
 	/tmp/nginx \
@@ -14,7 +11,7 @@ for runtime_directory in \
 	/tmp/nginx/scgi \
 	/tmp/nginx/uwsgi
 do
-	install --directory --mode=0750 --owner=www-data --group=www-data \
+	install --directory --mode=0750 \
 		"${runtime_directory}"
 done
 

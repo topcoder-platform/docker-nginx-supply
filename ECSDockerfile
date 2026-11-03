@@ -1,9 +1,19 @@
+# Render source-owned public configuration in a credential-free build stage.
+FROM ubuntu:noble@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517 AS render
+RUN apt-get update && apt-get install -y --no-install-recommends perl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /source
+COPY src ./src
+COPY buildimage.sh ./buildimage.sh
+COPY deploy/public-build.sh ./public-build.sh
+RUN bash ./public-build.sh prod
+
 FROM ubuntu:noble@sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates \
-        nginx \
+        nginx curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rm -rf /var/log/nginx/*.log && rm -rf /etc/nginx/nginx.conf && rm -rf /etc/nginx/sites-enabled && rm -rf /etc/nginx/includes && rm -rf /data/nginx/dist && rm -rf /data/nginx/*
@@ -12,7 +22,7 @@ RUN mkdir -p /data/nginxconf
 RUN mkdir -p /home/apps/nginx/app
 RUN mkdir -p /usr/share/nginx/html/customerrorpage && chown -Rf www-data:www-data /usr/share/nginx/html/customerrorpage
 
-COPY dist /data/nginxconf/dist
+COPY --from=render /source/dist /data/nginxconf/dist
 COPY rund /data/nginxconf/
 COPY healthcheck.html /home/apps/nginx/app/healthcheck.html
 
@@ -27,10 +37,10 @@ RUN chown -Rf www-data:www-data /data/nginxconf/dist
 
 WORKDIR /data/nginxconf
 
-ARG SOURCE_COMMIT=local
-
 LABEL app="nginx-supply" \
-      version="1.0" \
-      org.opencontainers.image.revision="${SOURCE_COMMIT}"
+      version="1.0"
 
+USER www-data
+EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail --silent http://127.0.0.1:8000/healthcheck.html >/dev/null || exit 1
 CMD ["./rund"]
