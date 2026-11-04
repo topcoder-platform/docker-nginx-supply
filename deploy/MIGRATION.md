@@ -16,8 +16,8 @@ At production cutover, stop legacy publishers, enable unconditional tag immutabi
 
 This PR targets `dev`. Administrator-installed dev prerequisites are recorded in the private IaC repository. The reviewed task health check was submitted only after confirming the existing image serves the identical healthy load-balancer endpoint.
 
-- The current image failed the proposed container health check and was rolled back; verify its probe executable before adopting the check.
-- Verify the dev health-check rollout or rollback outcome in the private installation receipt before merging.
+- Merge shared-suite PR #46, publish/pin its patch release, and pass the reviewed health-check file so the first new image and its check are installed together.
+- The previous revision is restored and stable. Its legacy image lacks curl/wget; the migration image supplies curl, so add its check with that image using the shared bootstrap patch.
 
 Run the shared offline suite, validate the CircleCI config and IAM policies, and test a dev release plus an unhealthy-image rollback. Verify CloudTrail contains no SSM/Secrets Manager calls from the deployment principal. Remove its old broker grants only after migration. Check the runtime secret references and roles stayed unchanged. Production requires the manual approval job and a passing digest/scan/health verification.
 
