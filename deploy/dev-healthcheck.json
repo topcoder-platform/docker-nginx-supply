@@ -1,0 +1,12 @@
+{
+  "nginx-supply-container": {
+    "command": [
+      "CMD-SHELL",
+      "curl --fail --silent http://127.0.0.1:8000/healthcheck.html >/dev/null || exit 1"
+    ],
+    "interval": 30,
+    "timeout": 5,
+    "retries": 3,
+    "startPeriod": 30
+  }
+}
