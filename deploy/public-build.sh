@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Verified from CloudFront alias metadata and the ECS VPC CIDR on 2026-11-03.
+# Public settings verified from CloudFront aliases and the ECS VPC CIDR.
 case "${1:-}" in
+  dev)
+    export ENV_PLATFORM_UI_ORIGIN=d10303ypawq4ub.cloudfront.net
+    export ENV_PLATFORM_UI_RESOLVER=10.15.0.2
+    exec bash ./buildimage.sh DEV '' --render-only
+    ;;
   prod)
     export ENV_PLATFORM_UI_ORIGIN=d1dpgrdo047sw7.cloudfront.net
     export ENV_PLATFORM_UI_RESOLVER=10.25.0.2
     exec bash ./buildimage.sh PROD '' --render-only
     ;;
-  *) echo 'Commit verified public dev CloudFront/DNS settings before building dev.' >&2; exit 1 ;;
+  *) echo 'Select dev or prod public build settings.' >&2; exit 1 ;;
 esac
