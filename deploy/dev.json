@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 2,
+  "environment": "dev",
+  "accountId": "811668436784",
+  "region": "us-east-1",
+  "deployRoleArn": "arn:aws:iam::811668436784:role/docker-nginx-supply-dev-deploy",
+  "taskRoleArn": null,
+  "executionRoleArn": "arn:aws:iam::811668436784:role/ecsTaskExecutionRole",
+  "cluster": "nginx-supply-serverless",
+  "service": "nginx-supply-svc",
+  "taskFamily": "nginx-supply-task",
+  "circleciOrgId": "947bef5e-1669-415d-b83c-4fc85155b7df",
+  "circleciProjectId": "a3f355e5-4f69-4453-a839-15f56994d748",
+  "repository": "github.com/topcoder-platform/docker-nginx-supply",
+  "branch": "dev",
+  "images": {
+    "nginx-supply-container": "nginx-supply"
+  }
+}

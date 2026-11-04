@@ -5,3 +5,9 @@
 !dist/**
 !healthcheck.html
 !rund
+
+!src/
+!src/**
+!buildimage.sh
+!deploy/
+!deploy/public-build.sh

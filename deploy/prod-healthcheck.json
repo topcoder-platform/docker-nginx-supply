@@ -1,0 +1,17 @@
+{
+  "nginx-supply-container": {
+    "command": [
+      "CMD",
+      "curl",
+      "--fail",
+      "--silent",
+      "--output",
+      "/dev/null",
+      "http://127.0.0.1:8000/healthcheck.html"
+    ],
+    "interval": 30,
+    "timeout": 5,
+    "retries": 3,
+    "startPeriod": 30
+  }
+}
