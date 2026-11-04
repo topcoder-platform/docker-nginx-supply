@@ -14,8 +14,9 @@ At production cutover, stop legacy publishers, enable unconditional tag immutabi
 
 ## Development acceptance
 
-This PR targets `dev`. Administrator-installed dev prerequisites are recorded in the private IaC repository. The reviewed task health check was submitted only after confirming the existing image serves the identical healthy load-balancer endpoint.
+This PR targets `dev`. Administrator-installed dev prerequisites are recorded in the private IaC repository. The existing revision remains healthy; the first new image and its task probe are promoted atomically after scanning.
 
+Merge to run the dev application deployment, then validate routing and health.
 
 Run the shared offline suite, validate the CircleCI config and IAM policies, and test a dev release plus an unhealthy-image rollback. Verify CloudTrail contains no SSM/Secrets Manager calls from the deployment principal. Remove its old broker grants only after migration. Check the runtime secret references and roles stayed unchanged. Production requires the manual approval job and a passing digest/scan/health verification.
 
@@ -25,7 +26,7 @@ The pinned executor is `cimg/aws@sha256:4cf3768db00ddf9bc439b8c84e8a60c11a14edf8
 
 The ECS image is built with `ECSDockerfile`, preserving the patched Ubuntu/nginx base, routing and error pages. Configuration renders inside a clean Docker stage from committed source. Public production CloudFront hostname `d1dpgrdo047sw7.cloudfront.net` and VPC DNS `10.25.0.2` were verified using CloudFront alias metadata and the live task VPC CIDR; no parameter was fetched. Nginx starts as `www-data` and owns only its temporary/cache paths.
 
-All branches currently build the production configuration for review. **Dev deployment is explicitly blocked** until an administrator verifies the dev CloudFront hostname/VPC resolver, commits a separate dev build target, and selects it in the dev build job. The expired dev AWS session prevents safely guessing these routing values. Keep the dev guard until both image configuration and dev manifest are verified. The old QA/feature-branch deployments are removed; those branches build without credentials.
+The verified dev CloudFront origin is `d10303ypawq4ub.cloudfront.net` and its VPC resolver is `10.15.0.2`. The `dev` Docker target uses those settings; `master` selects the separate `prod` target. Feature branches build dev without deployment credentials. The old image had no curl/wget and was restored after its probe attempt; the new image includes curl, and v2.0.6 adds the task check only when promoting that image.
 
 ## Infrastructure source
 
